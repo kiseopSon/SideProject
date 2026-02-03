@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EAI Hub - 통합 대시보드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header-content p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .service-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .service-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .service-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .status-healthy {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-unhealthy {
+            background: #ef4444;
+            color: white;
+        }
+
+        .status-unknown {
+            background: #6b7280;
+            color: white;
+        }
+
+        .service-description {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .service-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .info-badge {
+            background: #f3f4f6;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            color: #555;
+        }
+
+        .service-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover:not(:disabled) {
+            transform: rotate(180deg);
+            background: #5568d3;
+        }
+
+        .refresh-btn:disabled {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        .refresh-btn.loading {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .last-updated {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1>🚀 EAI Hub</h1>
+                <p>Enterprise Application Integration - 통합 서비스 관리 대시보드</p>
+            </div>
+            <button class="logout-btn" onclick="logout()">로그아웃</button>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <h3>전체 서비스</h3>
+                <div class="value" id="total-services">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>정상 서비스</h3>
+                <div class="value" id="healthy-services" style="color: #10b981;">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>비정상 서비스</h3>
+                <div class="value" id="unhealthy-services" style="color: #ef4444;">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>평균 응답시간</h3>
+                <div class="value" id="avg-response-time">-</div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">서비스 정보를 불러오는 중...</div>
+        <div class="services-grid" id="services-grid" style="display: none;"></div>
+        <div class="last-updated" id="last-updated"></div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadServices()" title="새로고침">🔄</button>
+
+    <script>
+        // 인증 확인 - 로그인하지 않았으면 로그인 페이지로 리다이렉트
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/me', { credentials: 'include' });
+                if (response.status === 401) {
+                    window.location.href = '/';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('인증 확인 오류:', error);
+                return true; // 네트워크 오류는 무시
+            }
+        }
+
+        let servicesData = [];
+        let healthData = {};
+        let userInfo = { username: '', is_admin: false };
+
+        async function loadServices() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            if (refreshBtn && !refreshBtn.disabled) {
+                refreshBtn.disabled = true;
+                refreshBtn.classList.add('loading');
+            }
+
+            const isAuthenticated = await checkAuth();
+            if (!isAuthenticated) {
+                if (refreshBtn) { refreshBtn.disabled = false; refreshBtn.classList.remove('loading'); }
+                return;
+            }
+
+            try {
+                // 현재 사용자 정보 (최고 권한 여부)
+                try {
+                    const meRes = await fetch('/api/me', { credentials: 'include' });
+                    if (meRes.ok) {
+                        const text = await meRes.text();
+                        const me = text ? JSON.parse(text) : {};
+                        userInfo = { username: me.username || '', is_admin: !!me.is_admin };
+                    }
+                } catch (e) {
+                    userInfo = { username: '', is_admin: false };
+                }
+
+                // 서비스 목록 로드
+                const servicesResponse = await fetch('/api/services', { credentials: 'include' });
+                if (servicesResponse.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+                const servicesText = await servicesResponse.text();
+                const servicesResult = servicesText ? (() => { try { return JSON.parse(servicesText); } catch (_) { return {}; } })() : {};
+                servicesData = servicesResult.services || [];
+
+                // 헬스체크 정보 로드
+                const healthResponse = await fetch('/api/health', { credentials: 'include' });
+                if (healthResponse.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+                const healthText = await healthResponse.text();
+                const healthResult = healthText ? (() => { try { return JSON.parse(healthText); } catch (_) { return {}; } })() : {};
+                healthData = healthResult.services || {};
+
+                updateStats(healthResult);
+                renderServices();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('services-grid').style.display = 'grid';
+                document.getElementById('last-updated').textContent = 
+                    `마지막 업데이트: ${new Date().toLocaleString('ko-KR')}`;
+            } catch (error) {
+                console.error('데이터 로드 오류:', error);
+                document.getElementById('loading').textContent = '데이터를 불러오는 중 오류가 발생했습니다.';
+            } finally {
+                const btn = document.querySelector('.refresh-btn');
+                if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+            }
+        }
+
+        function updateStats(healthResult) {
+            document.getElementById('total-services').textContent = healthResult.total_services || 0;
+            
+            // 정상/비정상 서비스 카운트 재계산 (비활성화된 서비스 제외)
+            let healthyCount = 0;
+            let unhealthyCount = 0;
+            
+            servicesData.forEach(service => {
+                const health = healthData[service.id] || {};
+                const isDesktopDownload = service.type === 'desktop' && service.metadata?.download_file;
+                const downloadAvailable = service.download_available === true;
+                const isHealthy = service.enabled !== false && health.is_healthy === true;
+                // 다운로드 전용 서비스는 다운로드 가능 시 정상으로 간주
+                const isEffectivelyHealthy = isHealthy || (isDesktopDownload && downloadAvailable);
+                if (service.enabled === false) {
+                    unhealthyCount++;
+                } else if (isEffectivelyHealthy) {
+                    healthyCount++;
+                } else {
+                    unhealthyCount++;
+                }
+            });
+            
+            document.getElementById('healthy-services').textContent = healthyCount;
+            document.getElementById('unhealthy-services').textContent = unhealthyCount;
+            
+            // 평균 응답시간 계산
+            let totalTime = 0;
+            let count = 0;
+            Object.values(healthData).forEach(status => {
+                if (status.response_time_ms) {
+                    totalTime += status.response_time_ms;
+                    count++;
+                }
+            });
+            const avgTime = count > 0 ? Math.round(totalTime / count) : 0;
+            document.getElementById('avg-response-time').textContent = avgTime > 0 ? `${avgTime}ms` : '-';
+        }
+
+        function renderServices() {
+            const grid = document.getElementById('services-grid');
+            grid.innerHTML = '';
+
+            servicesData.forEach(service => {
+                const health = healthData[service.id] || {};
+                // enabled가 false이거나 is_healthy가 false이면 비정상
+                const isDesktopDownload = service.type === 'desktop' && service.metadata?.download_file;
+                const downloadAvailable = service.download_available === true;
+                const isHealthy = service.enabled !== false && health.is_healthy === true;
+                // 다운로드 전용 서비스는 다운로드 가능 시 정상(녹색)으로 표시
+                const statusClass = (isDesktopDownload && downloadAvailable) ? 'status-healthy' : (isDesktopDownload ? 'status-unknown' : (isHealthy ? 'status-healthy' : 'status-unhealthy'));
+                let statusText = '비정상';
+                if (isDesktopDownload) statusText = downloadAvailable ? '다운로드 가능' : '준비 중';
+                else if (isHealthy) statusText = '정상';
+                else if (service.enabled === false) statusText = '비활성화';
+                else if (health.error_message && health.error_message.startsWith('헬스체크 불가')) statusText = '헬스체크 불가';
+
+                const card = document.createElement('div');
+                card.className = 'service-card';
+                card.innerHTML = `
+                    <div class="service-header">
+                        <div class="service-name">${service.name}</div>
+                        <div class="service-status ${statusClass}">${statusText}</div>
+                    </div>
+                    <div class="service-description">${service.description || '설명 없음'}</div>
+                    <div class="service-info">
+                        <span class="info-badge">${getTypeLabel(service.type)}</span>
+                        ${(service.metadata?.tech || []).map(tech => 
+                            `<span class="info-badge">${tech}</span>`
+                        ).join('')}
+                    </div>
+                    ${health.error_message && !isDesktopDownload ? 
+                        `<div style="color: #ef4444; font-size: 0.85em; margin-top: 10px;">⚠️ ${health.error_message}</div>` : ''}
+                    ${isDesktopDownload ? 
+                        `<div style="color: #64748b; font-size: 0.85em; margin-top: 10px;">📦 데스크톱 도구 - 다운로드 후 설치하여 사용</div>` : ''}
+                    <div class="service-actions">
+                        ${isDesktopDownload ? 
+                            (downloadAvailable ? 
+                                `<a href="/api/download/${service.id}" class="btn btn-primary" download>다운로드</a>` : 
+                                `<span class="btn btn-secondary" style="opacity:0.7; cursor:not-allowed;">준비 중</span>`) : ''}
+                        ${service.base_url && isHealthy ? 
+                            (() => { const u = (service.metadata?.direct_access && service.metadata?.port) ? (location.protocol + '//' + location.hostname + ':' + service.metadata.port + '/') : ('/api/' + service.id + '/'); return `<a href="#" class="btn btn-primary" data-service-url="${u.replace(/"/g, '&quot;')}" onclick="openServiceAccess(event, '${service.id}', this.dataset.serviceUrl)">서비스 접속</a>`; })() : ''}
+                        ${service.api_prefix && isHealthy ? 
+                            `<a href="/api/${service.id}/" class="btn btn-secondary" onclick="openApiAccess(event, '/api/${service.id}/')">API 접속</a>` : ''}
+                        ${service.api_prefix && userInfo.is_admin ? 
+                            `<a href="/services/${service.id}/api-info" class="btn btn-secondary">API 정보</a>` : ''}
+                        <a href="/services/${service.id}" class="btn btn-secondary">상세 정보</a>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function openServiceAccess(event, serviceId, targetUrl) {
+            event.preventDefault();
+            try {
+                const res = await fetch(`/api/check-service-access/${serviceId}`, { credentials: 'include' });
+                if (!res.ok) {
+                    alert('서비스 접근이 막혀있습니다.');
+                    return;
+                }
+                window.open(targetUrl, '_blank');
+            } catch (err) {
+                alert('서비스 접근이 막혀있습니다.');
+            }
+        }
+
+        async function openApiAccess(event, url) {
+            event.preventDefault();
+            try {
+                const res = await fetch(url, { credentials: 'include' });
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    alert(data.detail || 'API 접속에 실패했습니다.');
+                    return;
+                }
+                window.location.href = url;
+            } catch (err) {
+                alert('API 접속 중 오류가 발생했습니다.\n' + (err.message || ''));
+            }
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                'api': 'API',
+                'web': '웹',
+                'mobile': '모바일',
+                'desktop': '데스크톱',
+                'microservice': '마이크로서비스'
+            };
+            return labels[type] || type;
+        }
+
+        async function logout() {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('로그아웃 오류:', error);
+                // 오류가 발생해도 로그인 페이지로 이동
+                window.location.href = '/';
+            }
+        }
+
+        // 초기 로드
+        (function init() {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('error') === 'api_info_forbidden') {
+                alert('API 정보는 최고 권한(관리자) 계정만 접근할 수 있습니다.');
+                window.history.replaceState({}, '', '/dashboard');
+            }
+            loadServices();
+        })();
+
+        // 자동 새로고침 (30초마다)
+        setInterval(loadServices, 30000);
+    </script>
+</body>
+</html>

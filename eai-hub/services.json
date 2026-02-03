@@ -1,0 +1,110 @@
+{
+  "services": [
+    {
+      "id": "ai-incident",
+      "name": "AI Incident Intelligence Platform",
+      "description": "시스템 로그를 AI로 분석해 인시던트를 자동 탐지하고 대응하는 플랫폼",
+      "type": "microservice",
+      "api_prefix": "/api/ai-incident",
+      "enabled": true,
+      "metadata": {
+        "tech": ["Python", "FastAPI", "Kafka", "Redis", "Elasticsearch", "Ollama", "OpenTelemetry"],
+        "category": "monitoring"
+      }
+    },
+    {
+      "id": "ball-bounce",
+      "name": "Ball Bounce Game",
+      "description": "물리 엔진을 활용한 볼이 튀어오르는 캐주얼 게임",
+      "type": "web",
+      "api_prefix": null,
+      "enabled": true,
+      "metadata": {
+        "port": 9001,
+        "proxy_base_path": true,
+        "tech": ["React", "TypeScript", "Vite", "Canvas API", "Game Loop"],
+        "category": "game"
+      }
+    },
+    {
+      "id": "coffee-gateway",
+      "name": "Coffee Gateway Service",
+      "description": "커피 관련 마이크로서비스들을 통합하는 API 게이트웨이",
+      "type": "microservice",
+      "api_prefix": "/api/coffee",
+      "enabled": true,
+      "metadata": {
+        "port": 9002,
+        "tech": ["Java", "Spring Boot", "Spring Cloud Gateway", "Eureka", "Kafka", "H2", "Gradle"],
+        "category": "experiment"
+      }
+    },
+    {
+      "id": "cosmetics",
+      "name": "Cosmetics Ingredient Analyzer",
+      "description": "화장품 성분을 분석해 안전성과 효능을 확인해주는 서비스",
+      "type": "api",
+      "api_prefix": "/api/cosmetics",
+      "enabled": true,
+      "metadata": {
+        "port": 9003,
+        "tech": ["Python", "FastAPI", "React", "Vite", "TypeScript", "REST API", "CORS"],
+        "category": "analysis",
+        "health_path": "/health"
+      }
+    },
+    {
+      "id": "deffender-game",
+      "name": "Deffender Game",
+      "description": "몬스터를 막아내는 3D 탑디펜스 게임",
+      "type": "mobile",
+      "api_prefix": null,
+      "enabled": true,
+      "metadata": {
+        "port": 9004,
+        "direct_access": true,
+        "tech": ["React Native", "Expo", "Three.js", "WebGL", "Zustand", "TypeScript"],
+        "category": "game"
+      }
+    },
+    {
+      "id": "my-lover-is-clumsy",
+      "name": "My Lover Is Clumsy",
+      "description": "사랑하는 사람이 깜빡하는 걸 챙겨주기 위해 만들어진 크로스플랫폼 앱",
+      "type": "mobile",
+      "api_prefix": null,
+      "enabled": true,
+      "metadata": {
+        "port": 9005,
+        "tech": ["React Native", "Expo", "Supabase", "PostgreSQL", "RLS", "Zustand", "React Query"],
+        "category": "productivity"
+      }
+    },
+    {
+      "id": "regex-generator",
+      "name": "Regex Generator",
+      "description": "정규식을 쉽게 작성하고 테스트할 수 있는 데스크톱 도구",
+      "type": "desktop",
+      "api_prefix": null,
+      "enabled": true,
+      "metadata": {
+        "tech": ["Python", "PyInstaller", "Tkinter", "정규식", "pyperclip"],
+        "category": "utility",
+        "download_file": "RegexGenerator.exe"
+      }
+    },
+    {
+      "id": "sosadworld-gateway",
+      "name": "SoSadWorld Gateway Service",
+      "description": "텍스트 감정을 AI로 분석하는 서비스들의 통합 게이트웨이",
+      "type": "microservice",
+      "api_prefix": "/api/sosadworld",
+      "enabled": true,
+      "metadata": {
+        "port": 9006,
+        "tech": ["Java", "Spring Boot", "Spring Cloud Gateway", "Consul", "PostgreSQL", "Ollama", "OAuth2", "Keycloak"],
+        "category": "analysis"
+      }
+    }
+  ]
+}
