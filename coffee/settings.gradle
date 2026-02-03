@@ -1,0 +1,9 @@
+rootProject.name = 'coffee-brew-lab'
+
+include 'discovery-service'
+include 'gateway-service'
+include 'experiment-service'
+include 'event-consumer-service'
+include 'statistics-service'
+include 'common'
+

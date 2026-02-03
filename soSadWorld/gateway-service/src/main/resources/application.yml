@@ -1,0 +1,75 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-service
+  config:
+    import: "optional:consul:"
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8090/realms/sosadworld
+          # Keycloak 설정 후 실제 issuer URI로 변경 필요
+  cloud:
+    gateway:
+      routes:
+        - id: diary-service
+          uri: lb://diary-service
+          predicates:
+            - Path=/api/diaries/**
+          filters:
+            - StripPrefix=1
+        - id: ai-analysis-service
+          uri: lb://ai-analysis-service
+          predicates:
+            - Path=/api/analysis/**
+          filters:
+            - StripPrefix=1
+        - id: analysis-result-service
+          uri: lb://analysis-result-service
+          predicates:
+            - Path=/api/results/**
+          filters:
+            - StripPrefix=1
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+    consul:
+      host: localhost
+      port: 18500
+      discovery:
+        enabled: true
+        health-check-interval: 10s
+        prefer-ip-address: true
+      config:
+        enabled: true
+        format: YAML
+        prefix: config
+        default-context: application
+
+logging:
+  level:
+    root: INFO
+    com.sosadworld: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Scalper - 다중 종목</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      padding: 16px;
+      color: #eee;
+    }
+    .container { max-width: 1600px; margin: 0 auto; }
+    .header {
+      background: linear-gradient(135deg, #0f3460 0%, #e94560 100%);
+      color: white;
+      padding: 20px 24px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header h1 { font-size: 1.5em; }
+    .status {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+    .status.live { background: #10b981; color: white; }
+    .status.off { background: #6b7280; color: white; }
+    .side-toggle { display: flex; gap: 8px; }
+    .side-btn {
+      padding: 8px 16px;
+      border: 2px solid rgba(255,255,255,0.5);
+      border-radius: 8px;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .side-btn.active { background: rgba(255,255,255,0.3); border-color: white; }
+    .table-wrap {
+      overflow-x: auto;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+    }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    th {
+      color: #94a3b8;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    tr:hover { background: rgba(255,255,255,0.05); }
+    .stock-name { font-weight: 600; color: #f8fafc; }
+    .stock-code { color: #94a3b8; font-size: 0.85em; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    input.num-input {
+      width: 100%;
+      min-width: 80px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      background: rgba(0,0,0,0.3);
+      color: #f8fafc;
+      font-size: 0.9em;
+    }
+    input.num-input:focus {
+      outline: none;
+      border-color: #e94560;
+    }
+    .positive { color: #10b981; }
+    .negative { color: #ef4444; }
+    .pnl-cell { font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Stock Scalper – 다중 종목</h1>
+      <div class="side-toggle">
+        <button class="side-btn active" id="btnLong" onclick="setSide('LONG')">롱</button>
+        <button class="side-btn" id="btnShort" onclick="setSide('SHORT')">숏</button>
+      </div>
+      <div id="status" class="status off">가격 갱신 대기</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>종목</th>
+            <th class="num">현재가</th>
+            <th class="num">체결가 (원)</th>
+            <th class="num">손절 %</th>
+            <th class="num">R:R</th>
+            <th class="num">최대손실 (원)</th>
+            <th class="num">손절가</th>
+            <th class="num">익절가</th>
+            <th class="num">수량</th>
+            <th class="num">현재손익</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    let currentSide = 'LONG';
+    let stocks = [];
+    let priceMap = {};
+    let pollTimer = null;
+
+    async function setSide(side) {
+      currentSide = side;
+      document.getElementById('btnLong').classList.toggle('active', side === 'LONG');
+      document.getElementById('btnShort').classList.toggle('active', side === 'SHORT');
+      await refreshAll();
+    }
+
+    async function fetchStocks() {
+      const res = await fetch('/api/stocks');
+      const list = await res.json();
+      const prev = stocks;
+      stocks = list.map(s => {
+        const ex = prev.find(p => p.code === s.code);
+        return {
+          code: s.code,
+          name: s.name,
+          currentPrice: s.currentPrice,
+          entry: ex?.entry ?? (s.currentPrice > 0 ? Math.round(s.currentPrice) : null),
+          slPct: ex?.slPct ?? 1,
+          rr: ex?.rr ?? 1.5,
+          maxLoss: ex?.maxLoss ?? 30000,
+          calc: ex?.calc,
+          pnl: ex?.pnl
+        };
+      });
+      stocks.forEach(s => { priceMap[s.code] = s.currentPrice; });
+      return stocks;
+    }
+
+    function render() {
+      const tbody = document.getElementById('rows');
+      tbody.innerHTML = stocks.map(s => {
+        const entry = (s.entry ?? (s.currentPrice > 0 ? Math.round(s.currentPrice) : '')) + '';
+        const slPct = (s.slPct ?? 1) + '';
+        const rr = (s.rr ?? 1.5) + '';
+        const maxLoss = (s.maxLoss ?? 30000) + '';
+        const price = priceMap[s.code] ?? s.currentPrice ?? 0;
+        const sl = s.calc?.stopLossPrice ?? '-';
+        const tp = s.calc?.takeProfitPrice ?? '-';
+        const qty = s.calc?.quantity ?? '-';
+        const pnl = s.pnl != null ? (Math.round(s.pnl).toLocaleString() + '원') : '-';
+        const pnlCls = s.pnl != null ? (s.pnl >= 0 ? 'positive' : 'negative') : '';
+        return '<tr data-code="' + s.code + '">' +
+          '<td><span class="stock-name">' + (s.name || '') + '</span><br><span class="stock-code">' + s.code + '</span></td>' +
+          '<td class="num" data-price="' + s.code + '">' + (price > 0 ? Math.round(price).toLocaleString() + '원' : '-') + '</td>' +
+          '<td class="num"><input class="num-input" type="number" data-field="entry" data-code="' + s.code + '" value="' + entry + '" placeholder="체결가" step="100"></td>' +
+          '<td class="num"><input class="num-input" type="number" data-field="slPct" data-code="' + s.code + '" value="' + slPct + '" placeholder="%" step="0.1" min="0.1" max="20"></td>' +
+          '<td class="num"><input class="num-input" type="number" data-field="rr" data-code="' + s.code + '" value="' + rr + '" placeholder="R:R" step="0.1" min="0.5"></td>' +
+          '<td class="num"><input class="num-input" type="number" data-field="maxLoss" data-code="' + s.code + '" value="' + maxLoss + '" placeholder="원" step="1000" min="1000"></td>' +
+          '<td class="num">' + (typeof sl === 'number' ? Math.round(sl).toLocaleString() + '원' : sl) + '</td>' +
+          '<td class="num">' + (typeof tp === 'number' ? Math.round(tp).toLocaleString() + '원' : tp) + '</td>' +
+          '<td class="num">' + (typeof qty === 'number' ? qty + '주' : qty) + '</td>' +
+          '<td class="num pnl-cell ' + pnlCls + '">' + pnl + '</td>' +
+        '</tr>';
+      }).join('');
+
+      tbody.querySelectorAll('input.num-input').forEach(inp => {
+        inp.addEventListener('input', debounce(() => onInput(inp), 300));
+        inp.addEventListener('change', () => onInput(inp));
+      });
+    }
+
+    function debounce(f, ms) {
+      let t;
+      return function() { clearTimeout(t); t = setTimeout(f, ms); };
+    }
+
+    function getStock(code) { return stocks.find(s => s.code === code); }
+
+    async function onInput(inp) {
+      const code = inp.dataset.code;
+      const field = inp.dataset.field;
+      const s = getStock(code);
+      if (!s) return;
+      const v = inp.value.trim();
+      if (field === 'entry') s.entry = v ? parseFloat(v) : null;
+      else if (field === 'slPct') s.slPct = v ? parseFloat(v) : null;
+      else if (field === 'rr') s.rr = v ? parseFloat(v) : null;
+      else if (field === 'maxLoss') s.maxLoss = v ? parseFloat(v) : null;
+      await calcOne(code);
+      await updatePnlOne(code);
+      updateRowCells(code);
+    }
+
+    async function calcOne(code) {
+      const s = getStock(code);
+      if (!s || s.entry <= 0 || !s.slPct || !s.rr || !s.maxLoss) return;
+      try {
+        const res = await fetch('/risk/calc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            side: currentSide,
+            entryPrice: s.entry,
+            stopLossPercent: (s.slPct || 0) / 100,
+            rewardToRisk: s.rr || 0,
+            maxLossPerTrade: s.maxLoss || 0
+          })
+        });
+        const data = await res.json();
+        s.calc = {
+          stopLossPrice: data.stopLossPrice,
+          takeProfitPrice: data.takeProfitPrice,
+          quantity: data.quantity,
+          lossPerShare: data.lossPerShare,
+          profitPerShare: data.profitPerShare
+        };
+      } catch (e) { console.error('calc', code, e); }
+    }
+
+    async function updatePnlOne(code) {
+      const s = getStock(code);
+      const price = priceMap[code];
+      if (!s || !s.calc || s.calc.quantity <= 0 || !price) return;
+      try {
+        const res = await fetch('/risk/pnl', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            side: currentSide,
+            entryPrice: s.entry,
+            currentPrice: price,
+            quantity: s.calc.quantity
+          })
+        });
+        const data = await res.json();
+        s.pnl = data.pnl;
+      } catch (e) { console.error('pnl', code, e); }
+    }
+
+    async function refreshAll() {
+      for (const s of stocks) {
+        await calcOne(s.code);
+        await updatePnlOne(s.code);
+      }
+      render();
+    }
+
+    function updateRowCells(code) {
+      const s = getStock(code);
+      if (!s) return;
+      const row = document.querySelector('tr[data-code="' + code + '"]');
+      if (!row) return;
+      const tds = row.querySelectorAll('td');
+      const price = priceMap[code] ?? s.currentPrice ?? 0;
+      tds[1].textContent = price > 0 ? Math.round(price).toLocaleString() + '원' : '-';
+      const sl = s.calc?.stopLossPrice ?? '-';
+      const tp = s.calc?.takeProfitPrice ?? '-';
+      const qty = s.calc?.quantity ?? '-';
+      tds[6].textContent = typeof sl === 'number' ? Math.round(sl).toLocaleString() + '원' : sl;
+      tds[7].textContent = typeof tp === 'number' ? Math.round(tp).toLocaleString() + '원' : tp;
+      tds[8].textContent = typeof qty === 'number' ? qty + '주' : qty;
+      const pnl = s.pnl != null ? Math.round(s.pnl).toLocaleString() + '원' : '-';
+      tds[9].textContent = pnl;
+      tds[9].className = 'num pnl-cell ' + (s.pnl != null ? (s.pnl >= 0 ? 'positive' : 'negative') : '');
+    }
+
+    async function poll() {
+      try {
+        await fetchStocks();
+        for (const s of stocks) {
+          await updatePnlOne(s.code);
+        }
+        stocks.forEach(s => updateRowCells(s.code));
+        document.getElementById('status').textContent = '실시간 갱신 중';
+        document.getElementById('status').className = 'status live';
+      } catch (e) {
+        document.getElementById('status').textContent = '갱신 오류';
+        document.getElementById('status').className = 'status off';
+      }
+    }
+
+    async function init() {
+      await fetchStocks();
+      stocks.forEach(s => {
+        if (s.entry == null) s.entry = s.currentPrice > 0 ? Math.round(s.currentPrice) : null;
+        if (s.slPct == null) s.slPct = 1;
+        if (s.rr == null) s.rr = 1.5;
+        if (s.maxLoss == null) s.maxLoss = 30000;
+      });
+      await refreshAll();
+      pollTimer = setInterval(poll, 2000);
+    }
+
+    init();
+  </script>
+</body>
+</html>

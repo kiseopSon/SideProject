@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My DressRoom — 가상 피팅</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f12;
+      --surface: #1a1a1f;
+      --border: #2d2d35;
+      --text: #e8e8ec;
+      --muted: #8888a0;
+      --accent: #7c6ef6;
+      --accent-hover: #9288f8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .layout {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+    .zone {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .zone.dragover { border-color: var(--accent); background: rgba(124,110,246,0.06); }
+    .zone h3 { margin: 0 0 0.5rem 0; font-size: 0.95rem; font-weight: 500; }
+    .zone p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+    .zone input[type="file"] { display: none; }
+    .btn {
+      display: inline-block;
+      padding: 0.65rem 1.25rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 0.75rem;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .preview img {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    #result { margin-top: 2rem; }
+    #result img {
+      max-width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .status { color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; }
+    .error { color: #f08080; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <h1>My DressRoom</h1>
+    <p class="subtitle">증명사진 + 의류 이미지로 3D처럼 보이는 2D 합성을 만들어 보세요.</p>
+
+    <div class="zone" id="zonePerson">
+      <h3>사람 사진 (증명사진 / 전신)</h3>
+      <p>한 장만 선택해 주세요.</p>
+      <input type="file" id="inputPerson" accept="image/*">
+      <button type="button" class="btn" onclick="document.getElementById('inputPerson').click()">파일 선택</button>
+      <div class="preview" id="previewPerson"></div>
+    </div>
+
+    <div class="zone" id="zoneGarments">
+      <h3>의류 이미지 (셔츠, 바지, 신발 등)</h3>
+      <p>여러 장 올릴 수 있습니다.</p>
+      <input type="file" id="inputGarments" accept="image/*" multiple>
+      <button type="button" class="btn" onclick="document.getElementById('inputGarments').click()">파일 선택</button>
+      <div class="preview" id="previewGarments"></div>
+    </div>
+
+    <div style="margin-top: 1.25rem;">
+      <button type="button" class="btn" id="btnCreate" disabled>합성하기</button>
+      <div class="status" id="status"></div>
+    </div>
+
+    <div id="result" style="display: none;">
+      <h3>결과</h3>
+      <img id="resultImg" src="" alt="합성 결과">
+    </div>
+  </div>
+
+  <script>
+    const API = '/api';
+    const inputPerson = document.getElementById('inputPerson');
+    const inputGarments = document.getElementById('inputGarments');
+    const previewPerson = document.getElementById('previewPerson');
+    const previewGarments = document.getElementById('previewGarments');
+    const btnCreate = document.getElementById('btnCreate');
+    const statusEl = document.getElementById('status');
+    const resultEl = document.getElementById('result');
+    const resultImg = document.getElementById('resultImg');
+
+    let personFile = null;
+    let garmentFiles = [];
+
+    function renderPreviews() {
+      previewPerson.innerHTML = '';
+      if (personFile) {
+        const url = URL.createObjectURL(personFile);
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = personFile.name;
+        previewPerson.appendChild(img);
+      }
+      previewGarments.innerHTML = '';
+      garmentFiles.forEach(f => {
+        const url = URL.createObjectURL(f);
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = f.name;
+        previewGarments.appendChild(img);
+      });
+      btnCreate.disabled = !personFile || garmentFiles.length === 0;
+    }
+
+    inputPerson.addEventListener('change', () => {
+      const f = inputPerson.files && inputPerson.files[0];
+      personFile = f || null;
+      renderPreviews();
+    });
+    inputGarments.addEventListener('change', () => {
+      garmentFiles = inputGarments.files ? Array.from(inputGarments.files) : [];
+      renderPreviews();
+    });
+
+    btnCreate.addEventListener('click', async () => {
+      if (!personFile || garmentFiles.length === 0) return;
+      const fd = new FormData();
+      fd.append('person', personFile);
+      garmentFiles.forEach(f => fd.append('garments', f));
+
+      statusEl.textContent = '업로드 중…';
+      statusEl.classList.remove('error');
+      resultEl.style.display = 'none';
+
+      try {
+        const res = await fetch(API + '/outfit/create', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) {
+          statusEl.textContent = data.error || '요청 실패';
+          statusEl.classList.add('error');
+          return;
+        }
+        const jobId = data.jobId;
+        statusEl.textContent = '생성 중… (job: ' + jobId + ')';
+        pollJob(jobId);
+      } catch (e) {
+        statusEl.textContent = '오류: ' + e.message;
+        statusEl.classList.add('error');
+      }
+    });
+
+    async function pollJob(jobId) {
+      const maxAttempts = 60;
+      for (let i = 0; i < maxAttempts; i++) {
+        await new Promise(r => setTimeout(r, 2000));
+        try {
+          const res = await fetch(API + '/jobs/' + jobId);
+          const job = await res.json();
+          if (job.status === 'COMPLETED') {
+            resultImg.src = job.resultImageUrl;
+            resultEl.style.display = 'block';
+            statusEl.textContent = '완료';
+            return;
+          }
+          if (job.status === 'FAILED') {
+            statusEl.textContent = '실패: ' + (job.errorMessage || '알 수 없음');
+            statusEl.classList.add('error');
+            return;
+          }
+          statusEl.textContent = '생성 중… (' + (i + 1) + '회 확인)';
+        } catch (e) {
+          statusEl.textContent = '확인 실패: ' + e.message;
+          statusEl.classList.add('error');
+          return;
+        }
+      }
+      statusEl.textContent = '시간 초과';
+      statusEl.classList.add('error');
+    }
+  </script>
+</body>
+</html>

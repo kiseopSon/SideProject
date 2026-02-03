@@ -1,0 +1,69 @@
+# Rolling Update용 - 단일 앱 서비스, 복제본 2개
+# docker compose -f deploy/docker-compose.rolling.yml up -d --scale app=2
+# 새 버전 배포: docker compose up -d --scale app=2 (rolling으로 하나씩 교체)
+
+services:
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - appnet
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx-rolling.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - appnet
+
+  app:
+    image: ${IMAGE:-ecommerce-mvp:latest}
+    # 실행: docker compose -f deploy/docker-compose.rolling.yml up -d --scale app=2
+    environment:
+      PORT: 3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DB_PATH: /app/data/store.db
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - appnet
+
+  worker:
+    image: ${IMAGE_WORKER:-ecommerce-mvp-worker:latest}
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DB_PATH: /app/data/store.db
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - appnet
+
+volumes:
+  redis_data:
+  app_data:
+
+networks:
+  appnet:
+    driver: bridge

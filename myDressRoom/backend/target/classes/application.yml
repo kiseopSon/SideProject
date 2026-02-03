@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: my-dress-room
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 50MB
+
+app:
+  storage:
+    base-dir: ${user.dir}/data
+    upload-dir: ${app.storage.base-dir}/uploads
+    output-dir: ${app.storage.base-dir}/outputs
+  inference:
+    base-url: http://localhost:8000
+    generate-path: /api/v1/generate
+    connect-timeout-ms: 30_000
+    read-timeout-ms: 120_000
+
+server:
+  port: 8080

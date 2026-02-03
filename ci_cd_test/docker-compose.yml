@@ -1,0 +1,53 @@
+services:
+  redis:
+    image: redis:7-alpine
+    # Redis 포트 노출 시 외부에서 HTTP가 6379로 들어오면 CPS 경고 발생 가능
+    # redis-cli로 디버깅할 때만 아래 주석 해제
+    # ports:
+    #   - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DB_PATH: /app/data/store.db
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DB_PATH: /app/data/store.db
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  app_data:

@@ -1,0 +1,18 @@
+{
+  "name": "cosmetics-ingredient-analyzer",
+  "version": "1.0.0",
+  "description": "화장품 성분 분석 서비스",
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,green\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "npm install && npm install --prefix frontend",
+    "backend": "cd backend && python -m uvicorn main:app --reload",
+    "frontend": "npm run dev --prefix frontend",
+    "check:backend": "node -e \"fetch('http://localhost:8000/health').then(r=>r.json()).then(d=>console.log('✅ 백엔드 서버 실행 중:', d)).catch(e=>console.error('❌ 백엔드 서버 미실행:', e.message))\"",
+    "test:backend": "python test_backend.py"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

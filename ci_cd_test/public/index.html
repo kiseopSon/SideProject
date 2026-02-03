@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이커머스 MVP</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #eee;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { margin-bottom: 1rem; font-size: 1.8rem; }
+    .sub { color: #94a3b8; margin-bottom: 2rem; font-size: 0.9rem; }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .products { display: grid; gap: 1rem; margin-top: 1rem; }
+    .product {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+    }
+    .product-info h3 { font-size: 1rem; }
+    .product-info span { color: #94a3b8; font-size: 0.85rem; }
+    .product-actions { display: flex; gap: 0.5rem; align-items: center; }
+    input[type="number"] {
+      width: 60px; padding: 0.4rem;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: #fff;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      background: #3b82f6;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    button:hover { background: #2563eb; }
+    button.secondary { background: #475569; }
+    button.secondary:hover { background: #64748b; }
+    .cart { margin-top: 2rem; }
+    .cart-total { font-weight: bold; margin-top: 1rem; }
+    .status { padding: 0.5rem; margin-top: 1rem; border-radius: 6px; font-size: 0.9rem; }
+    .status.success { background: rgba(34,197,94,0.2); }
+    .status.info { background: rgba(59,130,246,0.2); }
+    .links { margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+    .links a { color: #60a5fa; text-decoration: none; }
+    .links a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>이커머스 MVP</h1>
+    <p class="sub">Redis 캐시 · Bull 큐 · 무중단 배포 연습용</p>
+
+    <div class="card">
+      <h2>상품 목록 (캐시 적용)</h2>
+      <button class="secondary" style="margin-bottom:0.5rem" onclick="loadProducts()">상품 새로고침</button>
+      <div id="products" class="products"></div>
+    </div>
+
+    <div class="card cart">
+      <h2>장바구니</h2>
+      <div id="cart"></div>
+      <div class="cart-total" id="total"></div>
+      <button id="orderBtn" style="margin-top:1rem">주문하기 (비동기 처리)</button>
+      <div id="orderStatus" class="status" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <h2>API 엔드포인트</h2>
+      <div class="links">
+        <a href="/api/products" target="_blank">GET /api/products</a>
+        <a href="/api/orders" target="_blank">GET /api/orders</a>
+        <a href="/health" target="_blank">GET /health</a>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center">
+        <button class="secondary" onclick="invalidateCache()">캐시 무효화</button>
+        <button class="secondary" onclick="runBatch()">배치 리포트 실행</button>
+        <button class="secondary" onclick="checkCacheStatus()">캐시 상태 확인</button>
+        <button class="secondary" onclick="checkBatchStatus()">배치 상태 확인</button>
+      </div>
+      <pre id="debugOutput" style="margin-top:1rem;padding:1rem;background:rgba(0,0,0,0.3);border-radius:8px;font-size:0.8rem;max-height:200px;overflow:auto;display:none"></pre>
+    </div>
+  </div>
+
+  <script>
+    let cart = {};
+    let products = [];
+
+    function renderProducts() {
+      const el = document.getElementById('products');
+      el.innerHTML = products.map(p => `
+        <div class="product">
+          <div class="product-info">
+            <h3>${p.name}</h3>
+            <span>${p.price.toLocaleString()}원 · 재고 ${p.stock}개</span>
+          </div>
+          <div class="product-actions">
+            <input type="number" min="1" max="${p.stock}" value="1" id="qty-${p.id}">
+            <button onclick="addToCart(${p.id})">담기</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function loadProducts() {
+      const res = await fetch('/api/products');
+      const cacheHeader = res.headers.get('X-Cache');
+      if (cacheHeader) console.log('상품 API 캐시:', cacheHeader);
+      products = await res.json();
+      renderProducts();
+    }
+
+    function addToCart(productId) {
+      const qty = parseInt(document.getElementById(`qty-${productId}`).value) || 1;
+      const product = products.find(p => p.id === productId);
+      if (!product || product.stock < (cart[productId] || 0) + qty) {
+        alert('재고가 부족합니다');
+        return;
+      }
+      cart[productId] = (cart[productId] || 0) + qty;
+      renderCart();
+    }
+
+    function renderCart() {
+      const el = document.getElementById('cart');
+      const totalEl = document.getElementById('total');
+      const items = Object.entries(cart).filter(([,q]) => q > 0);
+      if (items.length === 0) {
+        el.innerHTML = '<p style="color:#94a3b8">장바구니가 비어있습니다</p>';
+        totalEl.textContent = '';
+        return;
+      }
+      let total = 0;
+      el.innerHTML = items.map(([id, qty]) => {
+        const p = products.find(x => x.id === parseInt(id));
+        if (!p) return '';
+        total += p.price * qty;
+        return `<p>${p.name} x ${qty} = ${(p.price * qty).toLocaleString()}원 <button class="secondary" style="padding:0.2rem 0.5rem;font-size:0.8rem" onclick="removeFromCart(${id})">삭제</button></p>`;
+      }).join('');
+      totalEl.textContent = `총 ${total.toLocaleString()}원`;
+    }
+
+    function removeFromCart(productId) {
+      delete cart[productId];
+      renderCart();
+    }
+
+    async function order() {
+      const items = Object.entries(cart).filter(([,q]) => q > 0).map(([id, qty]) => ({ productId: parseInt(id), quantity: qty }));
+      if (items.length === 0) {
+        alert('장바구니가 비어있습니다');
+        return;
+      }
+      const statusEl = document.getElementById('orderStatus');
+      statusEl.style.display = 'block';
+      statusEl.className = 'status info';
+      statusEl.textContent = '주문 처리 중...';
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || '주문 실패');
+        statusEl.className = 'status success';
+        statusEl.textContent = `주문 #${data.orderId} 접수됨! (워커가 비동기 처리 중)`;
+        cart = {};
+        renderCart();
+        loadProducts();
+      } catch (e) {
+        statusEl.className = 'status';
+        statusEl.style.background = 'rgba(239,68,68,0.2)';
+        statusEl.textContent = '오류: ' + e.message;
+      }
+    }
+
+    async function invalidateCache() {
+      const res = await fetch('/api/products/cache/invalidate', { method: 'POST' });
+      const data = await res.json();
+      showDebug('캐시 무효화', data);
+      if (data.deletedKeys) showDebug('삭제된 키', data.deletedKeys);
+    }
+
+    async function runBatch() {
+      const res = await fetch('/api/orders/batch/report', { method: 'POST' });
+      const data = await res.json();
+      showDebug('배치 실행', data);
+      showDebug('→ 워커 로그 확인: docker compose logs -f worker', {});
+    }
+
+    async function checkCacheStatus() {
+      const res = await fetch('/api/products/cache/status');
+      const data = await res.json();
+      showDebug('캐시 상태', data);
+    }
+
+    async function checkBatchStatus() {
+      const res = await fetch('/api/orders/batch/report/status');
+      const data = await res.json();
+      showDebug('배치 상태', data);
+    }
+
+    function showDebug(title, data) {
+      const el = document.getElementById('debugOutput');
+      el.style.display = 'block';
+      el.textContent = (el.textContent ? el.textContent + '\n\n' : '') + `[${title}]\n` + JSON.stringify(data, null, 2);
+    }
+
+    document.getElementById('orderBtn').onclick = order;
+    loadProducts();
+  </script>
+</body>
+</html>

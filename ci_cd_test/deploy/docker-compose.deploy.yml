@@ -1,0 +1,88 @@
+# 배포용 Docker Compose - Blue-Green / Rolling Update 지원
+# 사용법: deploy/deploy.sh [blue|green|rolling]
+
+services:
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - appnet
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app_blue
+      - app_green
+    restart: unless-stopped
+    networks:
+      - appnet
+
+  app_blue:
+    image: ${IMAGE:-ecommerce-mvp:latest}
+    environment:
+      PORT: 3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DB_PATH: /app/data/store.db
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - appnet
+    deploy:
+      replicas: 1
+
+  app_green:
+    image: ${IMAGE:-ecommerce-mvp:latest}
+    environment:
+      PORT: 3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DB_PATH: /app/data/store.db
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - appnet
+    deploy:
+      replicas: 1
+
+  worker:
+    image: ${IMAGE_WORKER:-ecommerce-mvp-worker:latest}
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DB_PATH: /app/data/store.db
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - appnet
+
+volumes:
+  redis_data:
+  app_data:
+
+networks:
+  appnet:
+    driver: bridge

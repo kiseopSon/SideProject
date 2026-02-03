@@ -1,0 +1,9 @@
+node_modules
+.git
+.env
+*.db
+*.sqlite
+deploy
+.github
+*.md
+.DS_Store

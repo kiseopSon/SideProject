@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.mydressroom.scalper.domain.RiskCalculatorTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-01-28T08:49:19" hostname="DESKTOP-7FHQAT5" time="0.028">
+  <properties/>
+  <testcase name="mark_to_market_works[jvm]" classname="com.mydressroom.scalper.domain.RiskCalculatorTest" time="0.02"/>
+  <testcase name="long_calculates_sl_tp_and_quantity[jvm]" classname="com.mydressroom.scalper.domain.RiskCalculatorTest" time="0.008"/>
+  <testcase name="short_calculates_sl_tp_and_quantity[jvm]" classname="com.mydressroom.scalper.domain.RiskCalculatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

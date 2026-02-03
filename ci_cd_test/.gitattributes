@@ -1,0 +1,2 @@
+# nginx configs: LF for Linux containers (CRLF causes restart loop)
+deploy/*.conf text eol=lf
