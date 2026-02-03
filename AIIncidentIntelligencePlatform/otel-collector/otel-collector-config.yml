@@ -1,0 +1,65 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+  # Logs from file
+  filelog:
+    include:
+      - /var/log/**/*.log
+    operators:
+      - type: json_parser
+        id: parser-json
+        output: extract_metadata_from_filepath
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+  # Extract resource attributes
+  resource:
+    attributes:
+      - key: service.name
+        value: ${SERVICE_NAME}
+        action: upsert
+
+  # Transform metrics
+  transform:
+    metric_statements:
+      - context: metric
+        statements:
+          - set(name, "incident_metric") where name == "http.request.duration"
+
+exporters:
+  # Kafka exporter for event store
+  kafka:
+    brokers:
+      - kafka:9092
+    topic: incidents
+    protocol_version: 2.0.0
+    compression: gzip
+
+  # Console for debugging
+  logging:
+    loglevel: debug
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [kafka, logging]
+
+    metrics:
+      receivers: [otlp]
+      processors: [batch, resource, transform]
+      exporters: [kafka, logging]
+
+    logs:
+      receivers: [otlp, filelog]
+      processors: [batch, resource]
+      exporters: [kafka, logging]

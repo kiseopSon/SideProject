@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Event Processor - Kafka 이벤트 처리 메트릭
+  - job_name: 'event-processor'
+    static_configs:
+      - targets: ['host.docker.internal:9091']
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # LLM Layer - LLM 요청 메트릭 (포트 8000의 /metrics 엔드포인트 사용)
+  - job_name: 'llm-layer'
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+
+  # Metrics Exporter - Redis에서 인시던트 데이터를 Prometheus 메트릭으로 변환
+  - job_name: 'metrics-exporter'
+    static_configs:
+      # Windows Docker Desktop에서 호스트 접근
+      - targets: ['host.docker.internal:9093']
+    scrape_interval: 15s
+    scrape_timeout: 10s
