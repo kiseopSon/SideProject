@@ -1,0 +1,567 @@
+/* PriceComparisonModal 컴포넌트 전용 스타일 */
+.price-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  animation: fadeInUp 0.3s ease-out;
+  cursor: pointer; /* 외부 클릭 표시 */
+}
+
+.price-modal-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  overflow: hidden;
+  cursor: default; /* 컨테이너 내부는 기본 커서 */
+}
+
+/* 모달이 열려있을 때 body 스크롤 방지 */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* 헤더 */
+.price-modal-header {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.price-modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="15" fill="white" opacity="0.1"/><circle cx="80" cy="30" r="10" fill="white" opacity="0.1"/><circle cx="40" cy="80" r="8" fill="white" opacity="0.1"/></svg>');
+  background-size: 100px 100px;
+}
+
+.price-modal-header-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.price-modal-title-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.price-modal-icon {
+  font-size: 48px;
+}
+
+.price-modal-title {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.price-modal-subtitle {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.price-modal-close-button {
+  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  padding: 16px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  min-height: 56px;
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.price-modal-close-button:hover {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.price-modal-close-button svg {
+  width: 32px;
+  height: 32px;
+  stroke-width: 3;
+}
+
+/* 탭 네비게이션 */
+.price-modal-tabs {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  padding: 24px 32px;
+  border-bottom: 1px solid #bbf7d0;
+  display: flex;
+  gap: 8px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.price-tab-button {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  color: #166534;
+}
+
+.price-tab-button:hover {
+  background: rgba(255, 255, 255, 0.8);
+  color: #15803d;
+}
+
+.price-tab-button.active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  transform: scale(1.05);
+}
+
+/* 컨텐츠 영역 */
+.price-modal-content {
+  flex: 1;
+  overflow: hidden;
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.price-content-section {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* 직접 비교 탭 */
+.price-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+  height: 100%;
+}
+
+.price-main-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.price-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  padding: 32px;
+  border-radius: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #bbf7d0;
+}
+
+.price-card-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #166534;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.price-property-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.price-property-item {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 16px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.price-property-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.price-property-item.selected {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  transform: scale(1.02);
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+}
+
+.price-property-info {
+  flex: 1;
+}
+
+.price-property-title {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.price-property-location {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.price-property-price {
+  text-align: right;
+}
+
+.price-property-price-value {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.price-property-type {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* 비교 결과 */
+.price-comparison-result {
+  background: linear-gradient(135deg, #fdf4ff 0%, #f3e8ff 100%);
+  padding: 32px;
+  border-radius: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9d5ff;
+}
+
+.price-comparison-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #7c3aed;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.price-comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.price-comparison-item {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 24px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.price-comparison-label {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.price-comparison-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #10b981;
+  margin-bottom: 8px;
+}
+
+.price-comparison-name {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.price-comparison-difference {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.price-comparison-difference.positive {
+  color: #dc2626;
+}
+
+.price-comparison-difference.negative {
+  color: #059669;
+}
+
+.price-comparison-desc {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.price-comparison-type {
+  font-size: 10px;
+  color: #10b981;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* 추가 비교 정보 */
+.price-comparison-details {
+  margin-top: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.comparison-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.comparison-detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+}
+
+.detail-value {
+  color: #10b981;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Placeholder 스타일 */
+.price-comparison-placeholder {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.price-comparison-placeholder-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.price-comparison-placeholder-text {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.price-comparison-placeholder-desc {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+/* 시장 분석 탭 */
+.price-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  height: 100%;
+}
+
+.price-analysis-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  padding: 32px;
+  border-radius: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #bbf7d0;
+}
+
+.price-analysis-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #166534;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.price-analysis-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.price-analysis-item {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.price-analysis-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.price-analysis-label {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.price-analysis-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.price-analysis-bar-container {
+  width: 100%;
+  height: 12px;
+  background: #d1fae5;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.price-analysis-bar-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 6px;
+  width: 100%;
+}
+
+.price-analysis-count {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* 가성비 순위 */
+.price-ranking-item {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.price-ranking-rank {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.price-ranking-type {
+  color: #10b981;
+  font-weight: 700;
+}
+
+.price-ranking-desc {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* 투자 가이드 탭 */
+.price-investment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  height: 100%;
+}
+
+.price-investment-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  padding: 32px;
+  border-radius: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #bbf7d0;
+}
+
+.price-investment-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #166534;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.price-investment-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.investment-strategy,
+.investment-warning {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.investment-strategy-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #166534;
+  margin-bottom: 8px;
+}
+
+.investment-strategy-desc {
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.investment-warning-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #dc2626;
+  margin-bottom: 8px;
+}
+
+.investment-warning-desc {
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 애니메이션 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

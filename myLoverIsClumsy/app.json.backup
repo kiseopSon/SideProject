@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "My덤벙이",
+    "slug": "my-lover-is-clumsy",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FF6B9D"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.myloverisclumsy.app"
+    },
+    "android": {
+      "package": "com.myloverisclumsy.app",
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FF6B9D"
+      }
+    },
+    "web": {},
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#ffffff"
+        }
+      ]
+    ],
+    "scheme": "myloverisclumsy",
+    "extra": {
+      "eas": {
+        "projectId": "9da72273-b741-4089-92c2-2ee35a8f33ed"
+      }
+    }
+  }
+}

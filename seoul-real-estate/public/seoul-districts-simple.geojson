@@ -1,0 +1,280 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "강남구",
+        "name": "강남구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[127.0, 37.5], [127.1, 37.5], [127.1, 37.6], [127.0, 37.6], [127.0, 37.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "강동구",
+        "name": "강동구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[127.1, 37.5], [127.2, 37.5], [127.2, 37.6], [127.1, 37.6], [127.1, 37.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "강북구",
+        "name": "강북구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[127.0, 37.6], [127.1, 37.6], [127.1, 37.7], [127.0, 37.7], [127.0, 37.6]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "강서구",
+        "name": "강서구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.8, 37.5], [126.9, 37.5], [126.9, 37.6], [126.8, 37.6], [126.8, 37.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "관악구",
+        "name": "관악구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.9, 37.4], [127.0, 37.4], [127.0, 37.5], [126.9, 37.5], [126.9, 37.4]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "광진구",
+        "name": "광진구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[127.1, 37.5], [127.2, 37.5], [127.2, 37.6], [127.1, 37.6], [127.1, 37.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "구로구",
+        "name": "구로구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.8, 37.4], [126.9, 37.4], [126.9, 37.5], [126.8, 37.5], [126.8, 37.4]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "금천구",
+        "name": "금천구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.9, 37.4], [127.0, 37.4], [127.0, 37.5], [126.9, 37.5], [126.9, 37.4]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "노원구",
+        "name": "노원구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[127.0, 37.6], [127.1, 37.6], [127.1, 37.7], [127.0, 37.7], [127.0, 37.6]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "도봉구",
+        "name": "도봉구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[127.0, 37.6], [127.1, 37.6], [127.1, 37.7], [127.0, 37.7], [127.0, 37.6]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "동대문구",
+        "name": "동대문구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[127.0, 37.5], [127.1, 37.5], [127.1, 37.6], [127.0, 37.6], [127.0, 37.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "동작구",
+        "name": "동작구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.9, 37.4], [127.0, 37.4], [127.0, 37.5], [126.9, 37.5], [126.9, 37.4]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "마포구",
+        "name": "마포구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.9, 37.5], [127.0, 37.5], [127.0, 37.6], [126.9, 37.6], [126.9, 37.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "서대문구",
+        "name": "서대문구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.9, 37.5], [127.0, 37.5], [127.0, 37.6], [126.9, 37.6], [126.9, 37.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "서초구",
+        "name": "서초구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[127.0, 37.4], [127.1, 37.4], [127.1, 37.5], [127.0, 37.5], [127.0, 37.4]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "성동구",
+        "name": "성동구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[127.0, 37.5], [127.1, 37.5], [127.1, 37.6], [127.0, 37.6], [127.0, 37.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "성북구",
+        "name": "성북구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[127.0, 37.6], [127.1, 37.6], [127.1, 37.7], [127.0, 37.7], [127.0, 37.6]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "송파구",
+        "name": "송파구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[127.1, 37.4], [127.2, 37.4], [127.2, 37.5], [127.1, 37.5], [127.1, 37.4]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "양천구",
+        "name": "양천구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.8, 37.4], [126.9, 37.4], [126.9, 37.5], [126.8, 37.5], [126.8, 37.4]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "영등포구",
+        "name": "영등포구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.9, 37.4], [127.0, 37.4], [127.0, 37.5], [126.9, 37.5], [126.9, 37.4]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "용산구",
+        "name": "용산구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.9, 37.5], [127.0, 37.5], [127.0, 37.6], [126.9, 37.6], [126.9, 37.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "은평구",
+        "name": "은평구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.8, 37.5], [126.9, 37.5], [126.9, 37.6], [126.8, 37.6], [126.8, 37.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "종로구",
+        "name": "종로구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.9, 37.5], [127.0, 37.5], [127.0, 37.6], [126.9, 37.6], [126.9, 37.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "중구",
+        "name": "중구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[126.9, 37.5], [127.0, 37.5], [127.0, 37.6], [126.9, 37.6], [126.9, 37.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SIG_KOR_NM": "중랑구",
+        "name": "중랑구"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[127.0, 37.5], [127.1, 37.5], [127.1, 37.6], [127.0, 37.6], [127.0, 37.5]]]
+      }
+    }
+  ]
+}

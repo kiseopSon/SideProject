@@ -1,0 +1,256 @@
+/* Header 컴포넌트 전용 스타일 */
+.app-header {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 40;
+}
+
+.header-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.header-title {
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fadeInUp 0.8s ease-out;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+.header-title:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.header-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  animation: pulse 2s infinite;
+}
+
+.header-center {
+  display: flex;
+  align-items: center;
+}
+
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #059669;
+}
+
+.status-icon {
+  animation: pulse 2s infinite;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-button {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.database-button {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+}
+
+.database-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6);
+}
+
+.stats-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.stats-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+.price-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.price-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+}
+
+/* 애니메이션 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 모바일 반응형 디자인 */
+@media (max-width: 1024px) {
+  .header-content {
+    padding: 0 16px;
+    height: 70px;
+  }
+  
+  .header-left {
+    gap: 16px;
+  }
+  
+  .header-title {
+    font-size: 28px;
+  }
+  
+  .header-badge {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .header-status {
+    gap: 12px;
+  }
+  
+  .status-item {
+    font-size: 12px;
+    gap: 6px;
+  }
+  
+  .header-right {
+    gap: 12px;
+  }
+  
+  .header-button {
+    padding: 10px 20px;
+    font-size: 14px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0 12px;
+    height: 60px;
+  }
+  
+  .header-left {
+    gap: 12px;
+  }
+  
+  .header-title {
+    font-size: 24px;
+  }
+  
+  .header-badge {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  
+  .header-center {
+    display: none; /* 모바일에서는 상태 정보 숨김 */
+  }
+  
+  .header-right {
+    gap: 8px;
+  }
+  
+  .header-button {
+    padding: 8px 16px;
+    font-size: 12px;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    padding: 0 8px;
+    height: 50px;
+  }
+  
+  .header-left {
+    gap: 8px;
+  }
+  
+  .header-title {
+    font-size: 20px;
+  }
+  
+  .header-badge {
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+  
+  .header-right {
+    gap: 6px;
+  }
+  
+  .header-button {
+    padding: 6px 12px;
+    font-size: 11px;
+    gap: 3px;
+  }
+}
