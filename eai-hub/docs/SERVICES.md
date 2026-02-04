@@ -10,7 +10,10 @@ EAI Hub가 관리하는 서비스 목록, 포트 배정, 연결 방식, 아키�
 |-----------|----------|------|------|-----------|
 | ai-incident | AI Incident Intelligence Platform | 9000 | microservice | 프록시 (`/api/ai-incident/`) |
 | ball-bounce | Ball Bounce Game | 9001 | web | 프록시 (`/api/ball-bounce/`) |
-| coffee-gateway | Coffee Gateway Service | 9002 | microservice | 프록시 (`/api/coffee/`) |
+| coffee-gateway | Coffee Brew Lab (statistics-service) | 9002 | microservice | 프록시 (`/api/coffee-gateway/`) |
+| statistics | Coffee Statistics API | 9002 | microservice | 프록시 (`/api/statistics/`) |
+| experiments | Coffee Experiments API | 8101 | microservice | 프록시 (`/api/experiments`) → gateway |
+| coffee-eureka | Coffee Eureka (Discovery) | 8100 | microservice | 프록시 (`/api/coffee-eureka/`) |
 | cosmetics | Cosmetics Ingredient Analyzer | 9003 | api | 프록시 (`/api/cosmetics/`) |
 | deffender-game | Deffender Game | 9004 | mobile | **직접 접속** (`호스트:9004`) |
 | my-lover-is-clumsy | My Lover Is Clumsy | 9005 | mobile | 프록시 또는 직접 |
@@ -34,7 +37,7 @@ EAI Hub가 관리하는 서비스 목록, 포트 배정, 연결 방식, 아키�
 | 서비스 | 접속 URL 예시 |
 |--------|---------------|
 | ball-bounce | `http://localhost:8000/api/ball-bounce/` |
-| coffee-gateway | `http://localhost:8000/api/coffee/` |
+| coffee-gateway | `http://localhost:8000/api/coffee-gateway/` (대시보드, 실험 폼, 검색, 히스토리) |
 | cosmetics | `http://localhost:8000/api/cosmetics/` |
 | sosadworld-gateway | `http://localhost:8000/api/sosadworld/` |
 
@@ -57,7 +60,20 @@ Expo/Metro 번들러는 프록시 경로에서 제대로 동작하지 않아, **
 
 **외부 접속 시**: iptime 등에서 **포트 9004** 포워딩 설정 필요 (외부 포트 → 내부 192.168.0.x:9004)
 
-### 3. 다운로드 전용 (Desktop)
+### 3. Coffee Brew Lab 경로 리다이렉트
+
+Coffee statistics-service가 루트 경로로 리다이렉트하는 URL은 EAI Hub에서 자동으로 `/api/coffee-gateway/` 경로로 전달됩니다.
+
+| 루트 경로 | 리다이렉트 대상 |
+|-----------|-----------------|
+| `/complete-form` | `/api/coffee-gateway/complete-form` |
+| `/experiment-form` | `/api/coffee-gateway/experiment-form` |
+| `/search-page` | `/api/coffee-gateway/search-page` |
+| `/history-page` | `/api/coffee-gateway/history-page` |
+
+> `/dashboard`는 EAI Hub 대시보드용으로 예약되어 있음
+
+### 4. 다운로드 전용 (Desktop)
 
 API가 없는 데스크톱 앱은 **실행 파일 다운로드**로 제공됩니다.
 
@@ -90,7 +106,7 @@ API가 없는 데스크톱 앱은 **실행 파일 다운로드**로 제공됩니
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │ ai-incident      │    │ ball-bounce      │    │ coffee-gateway   │    │ cosmetics        │
 │ :9000            │    │ :9001 (Vite)     │    │ :9002           │    │ :9003            │
-│ /api/ai-incident │    │ /api/ball-bounce │    │ /api/coffee     │    │ /api/cosmetics   │
+│ /api/ai-incident │    │ /api/ball-bounce │    │ /api/coffee-gateway │ /api/cosmetics   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                           │                    │
          │                           │                    │
@@ -115,8 +131,18 @@ API가 없는 데스크톱 앱은 **실행 파일 다운로드**로 제공됩니
 ### 요청 흐름
 
 1. **프록시 요청**: `GET /api/ball-bounce/` → Proxy Router → `http://localhost:9001/` (ball-bounce는 `proxy_base_path`로 `http://localhost:9001/api/ball-bounce/`로 전달)
-2. **직접 접속**: `GET /api/deffender-game/` → 307 리다이렉트 → `http://호스트:9004/`
-3. **헬스체크**: Health Checker가 주기적으로 각 서비스 `base_url` 또는 `health_check_url` 호출
+2. **Coffee Brew Lab**: `GET /api/coffee-gateway/dashboard` → Proxy Router → `http://localhost:9002/dashboard`
+3. **직접 접속**: `GET /api/deffender-game/` → 307 리다이렉트 → `http://호스트:9004/`
+4. **헬스체크**: Health Checker가 주기적으로 각 서비스 `base_url` 또는 `health_check_url` 호출
+
+### Coffee Brew Lab 연동 요약
+
+| EAI Hub 경로 | 백엔드 | 비고 |
+|--------------|--------|------|
+| `/api/coffee-gateway/*` | statistics-service (9002) | 대시보드, 실험 폼, 검색, 히스토리 |
+| `/api/experiments` | gateway (8101) | 실험 생성/완료 API |
+| `/api/statistics/*` | statistics-service (9002) | 통계/검색 API |
+| `/api/coffee-eureka/` | Eureka (8100) | API 접속 버튼용 |
 
 ---
 
@@ -152,6 +178,9 @@ eai-hub/
 | `direct_access` | Expo 등 프록시 미지원 시 직접 URL 리다이렉트 | `true` (deffender-game) |
 | `health_path` | 헬스체크 경로 (기본 `/`) | `/health`, `/actuator/health` |
 | `download_file` | 데스크톱 앱 실행 파일명 | `RegexGenerator.exe` |
+| `api_url` | API 접속 버튼 URL (상대 경로 시 프록시 경유) | `/api/coffee-eureka/` |
+| `backend_path` | 프록시 시 백엔드 경로 | `/api/experiments`, `/api/statistics` |
+| `backend_port` | 실제 프록시 대상 포트 (다른 포트로 전달 시) | `8101` (experiments → gateway) |
 
 ---
 

@@ -31,7 +31,8 @@ class ServiceRegistry:
                             # metadata.port 지정 시 해당 포트 사용, 없으면 자동 할당
                             assigned_port = meta.get('port') if meta.get('port') is not None else port
                             port = max(port, assigned_port + 1)  # 다음 서비스가 중복 포트 받지 않도록
-                            base = f'http://localhost:{assigned_port}'
+                            host = meta.get('host', settings.SERVICE_HOST)
+                            base = f'http://{host}:{assigned_port}'
                             health_path = meta.get('health_path', '/')
                             service_data['base_url'] = base
                             service_data['health_check_url'] = f'{base.rstrip("/")}{health_path}'
@@ -147,7 +148,7 @@ class ServiceRegistry:
             if (service_data.get('type') != 'desktop' and
                     service_data.get('enabled', True)):
                 service_data = dict(service_data)
-                base = f'http://localhost:{port}'
+                base = f'http://{settings.SERVICE_HOST}:{port}'
                 health_path = (service_data.get('metadata') or {}).get('health_path', '/')
                 service_data['base_url'] = base
                 service_data['health_check_url'] = f'{base.rstrip("/")}{health_path}'

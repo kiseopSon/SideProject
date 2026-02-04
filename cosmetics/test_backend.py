@@ -7,7 +7,7 @@ import sys
 def test_backend():
     try:
         # Health check
-        response = requests.get("http://localhost:8000/health", timeout=2)
+        response = requests.get("http://localhost:8500/health", timeout=2)
         if response.status_code == 200:
             print("✅ 백엔드 서버가 정상적으로 실행 중입니다!")
             print(f"   응답: {response.json()}")
@@ -19,7 +19,7 @@ def test_backend():
         print("❌ 백엔드 서버에 연결할 수 없습니다.")
         print("   백엔드 서버가 실행 중인지 확인하세요:")
         print("   cd backend")
-        print("   python -m uvicorn main:app --reload")
+        print("   python -m uvicorn main:app --reload --host 127.0.0.1 --port 8500")
         return False
     except requests.exceptions.Timeout:
         print("❌ 백엔드 서버 응답 시간 초과")

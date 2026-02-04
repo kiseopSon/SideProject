@@ -21,9 +21,74 @@
       "enabled": true,
       "metadata": {
         "port": 9001,
+        "host": "localhost",
+        "health_path": "/api/ball-bounce/",
         "proxy_base_path": true,
         "tech": ["React", "TypeScript", "Vite", "Canvas API", "Game Loop"],
         "category": "game"
+      }
+    },
+    {
+      "id": "statistics",
+      "name": "Coffee Statistics API",
+      "description": "Coffee Brew Lab statistics API (/api/statistics 호출용 - history, search 등)",
+      "type": "microservice",
+      "api_prefix": "/api/statistics",
+      "enabled": true,
+      "metadata": {
+        "port": 9002,
+        "host": "localhost",
+        "health_path": "/actuator/health",
+        "backend_path": "/api/statistics",
+        "dashboard_hidden": true
+      }
+    },
+    {
+      "id": "experiments",
+      "name": "Experiments API",
+      "description": "Coffee Brew Lab experiments API (/api/experiments 호출용)",
+      "type": "microservice",
+      "api_prefix": "/api/experiments",
+      "enabled": true,
+      "metadata": {
+        "port": 9002,
+        "host": "localhost",
+        "health_path": "/actuator/health",
+        "backend_path": "/api/experiments",
+        "backend_port": 8101,
+        "dashboard_hidden": true
+      }
+    },
+    {
+      "id": "coffee-eureka",
+      "name": "Coffee Eureka (Discovery)",
+      "description": "Eureka 대시보드 (8100) - API 접속 버튼용",
+      "type": "microservice",
+      "api_prefix": "/api/coffee-eureka",
+      "enabled": true,
+      "metadata": {
+        "port": 8100,
+        "host": "localhost",
+        "health_path": "/",
+        "dashboard_hidden": true
+      }
+    },
+    {
+      "id": "coffee",
+      "name": "Coffee API",
+      "description": "Coffee Gateway API (/api/coffee 호출용)",
+      "type": "microservice",
+      "api_prefix": "/api/coffee",
+      "enabled": true,
+      "metadata": {
+        "port": 9002,
+        "host": "localhost",
+        "health_path": "/actuator/health",
+        "backend_path": "/api/coffee",
+        "api_url": "http://localhost:9002/",
+        "tech": ["Java", "Spring Boot", "Spring Cloud Gateway"],
+        "category": "experiment",
+        "dashboard_hidden": true
       }
     },
     {
@@ -35,22 +100,24 @@
       "enabled": true,
       "metadata": {
         "port": 9002,
+        "health_path": "/actuator/health",
+        "host": "localhost",
+        "api_url": "/api/coffee-eureka/",
         "tech": ["Java", "Spring Boot", "Spring Cloud Gateway", "Eureka", "Kafka", "H2", "Gradle"],
         "category": "experiment"
       }
     },
     {
-      "id": "cosmetics",
-      "name": "Cosmetics Ingredient Analyzer",
-      "description": "화장품 성분을 분석해 안전성과 효능을 확인해주는 서비스",
-      "type": "api",
-      "api_prefix": "/api/cosmetics",
+      "id": "my-lover-is-clumsy",
+      "name": "My Lover Is Clumsy",
+      "description": "사랑하는 사람이 깜빡하는 걸 챙겨주기 위해 만들어진 크로스플랫폼 앱",
+      "type": "mobile",
+      "api_prefix": null,
       "enabled": true,
       "metadata": {
         "port": 9003,
-        "tech": ["Python", "FastAPI", "React", "Vite", "TypeScript", "REST API", "CORS"],
-        "category": "analysis",
-        "health_path": "/health"
+        "tech": ["React Native", "Expo", "Supabase", "PostgreSQL", "RLS", "Zustand", "React Query"],
+        "category": "productivity"
       }
     },
     {
@@ -68,16 +135,35 @@
       }
     },
     {
-      "id": "my-lover-is-clumsy",
-      "name": "My Lover Is Clumsy",
-      "description": "사랑하는 사람이 깜빡하는 걸 챙겨주기 위해 만들어진 크로스플랫폼 앱",
-      "type": "mobile",
-      "api_prefix": null,
+      "id": "cosmetics-api",
+      "name": "Cosmetics Backend API",
+      "description": "화장품 성분 분석 API (9005) - 프론트엔드 API 호출용",
+      "type": "microservice",
+      "api_prefix": "/api/cosmetics-api",
       "enabled": true,
       "metadata": {
         "port": 9005,
-        "tech": ["React Native", "Expo", "Supabase", "PostgreSQL", "RLS", "Zustand", "React Query"],
-        "category": "productivity"
+        "host": "localhost",
+        "health_path": "/health",
+        "backend_path": "/api",
+        "dashboard_hidden": true
+      }
+    },
+    {
+      "id": "cosmetics",
+      "name": "Cosmetics Ingredient Analyzer",
+      "description": "화장품 성분을 분석해 안전성과 효능을 확인해주는 서비스",
+      "type": "api",
+      "api_prefix": "/api/cosmetics",
+      "enabled": true,
+      "metadata": {
+        "port": 8500,
+        "host": "localhost",
+        "health_path": "/",
+        "proxy_base_path": true,
+        "hide_api_button": true,
+        "tech": ["Python", "FastAPI", "React", "Vite", "TypeScript", "REST API", "CORS", "크롤링"],
+        "category": "analysis"
       }
     },
     {

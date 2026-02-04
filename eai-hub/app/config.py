@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     # 서비스 레지스트리 파일 경로
     SERVICES_CONFIG_PATH: str = "services.json"
     
+    # 서비스 연결 호스트 (localhost → IPv6 우선 시도 시 실패할 수 있어 127.0.0.1 권장)
+    SERVICE_HOST: str = "127.0.0.1"
+    
     # 헬스체크 설정
     HEALTH_CHECK_INTERVAL: int = 30  # 초
     HEALTH_CHECK_TIMEOUT: int = 5  # 초

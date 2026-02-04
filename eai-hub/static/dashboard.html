@@ -61,6 +61,57 @@
             background: #dc2626;
         }
 
+        .fullscreen-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-right: 10px;
+            transition: background 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .fullscreen-btn:hover {
+            background: #5a67d8;
+        }
+
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            cursor: pointer;
+        }
+
+        .fullscreen-overlay .prompt {
+            background: white;
+            padding: 30px 50px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.2em;
+            color: #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .fullscreen-overlay .prompt small {
+            display: block;
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.85em;
+        }
+
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -219,15 +270,24 @@
             border-radius: 50%;
             width: 60px;
             height: 60px;
-            font-size: 1.5em;
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            transition: all 0.3s;
+            transition: background 0.3s, box-shadow 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .refresh-btn .refresh-icon {
+            width: 28px;
+            height: 28px;
+            fill: currentColor;
         }
 
         .refresh-btn:hover:not(:disabled) {
-            transform: rotate(180deg);
             background: #5568d3;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.35);
         }
 
         .refresh-btn:disabled {
@@ -235,11 +295,11 @@
             cursor: wait;
         }
 
-        .refresh-btn.loading {
-            animation: spin 1s linear infinite;
+        .refresh-btn.loading .refresh-icon {
+            animation: refresh-spin 0.8s linear infinite;
         }
 
-        @keyframes spin {
+        @keyframes refresh-spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
@@ -253,13 +313,23 @@
     </style>
 </head>
 <body>
+    <div class="fullscreen-overlay" id="fullscreen-overlay" onclick="requestFullscreenAndClose()">
+        <div class="prompt">🖥️ 전체화면으로 전환하려면 클릭하세요<br><small>(ESC로 해제)</small></div>
+    </div>
     <div class="container">
         <div class="header">
             <div class="header-content">
                 <h1>🚀 EAI Hub</h1>
                 <p>Enterprise Application Integration - 통합 서비스 관리 대시보드</p>
             </div>
-            <button class="logout-btn" onclick="logout()">로그아웃</button>
+            <div>
+                <button class="fullscreen-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="전체화면 전환 (F11)">
+                    <svg id="fullscreen-icon-expand" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                    <svg id="fullscreen-icon-exit" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+                    <span id="fullscreen-text">전체화면</span>
+                </button>
+                <button class="logout-btn" onclick="logout()">로그아웃</button>
+            </div>
         </div>
 
         <div class="stats" id="stats">
@@ -286,7 +356,11 @@
         <div class="last-updated" id="last-updated"></div>
     </div>
 
-    <button class="refresh-btn" onclick="loadServices()" title="새로고침">🔄</button>
+    <button class="refresh-btn" onclick="loadServices()" title="새로고침">
+        <svg class="refresh-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+        </svg>
+    </button>
 
     <script>
         // 인증 확인 - 로그인하지 않았으면 로그인 페이지로 리다이렉트
@@ -370,13 +444,15 @@
         }
 
         function updateStats(healthResult) {
-            document.getElementById('total-services').textContent = healthResult.total_services || 0;
+            const visibleCount = servicesData.filter(s => !s.metadata?.dashboard_hidden).length;
+            document.getElementById('total-services').textContent = visibleCount || healthResult.total_services || 0;
             
             // 정상/비정상 서비스 카운트 재계산 (비활성화된 서비스 제외)
             let healthyCount = 0;
             let unhealthyCount = 0;
             
             servicesData.forEach(service => {
+                if (service.metadata?.dashboard_hidden) return;
                 const health = healthData[service.id] || {};
                 const isDesktopDownload = service.type === 'desktop' && service.metadata?.download_file;
                 const downloadAvailable = service.download_available === true;
@@ -413,6 +489,7 @@
             grid.innerHTML = '';
 
             servicesData.forEach(service => {
+                if (service.metadata?.dashboard_hidden) return;
                 const health = healthData[service.id] || {};
                 // enabled가 false이거나 is_healthy가 false이면 비정상
                 const isDesktopDownload = service.type === 'desktop' && service.metadata?.download_file;
@@ -451,8 +528,8 @@
                                 `<span class="btn btn-secondary" style="opacity:0.7; cursor:not-allowed;">준비 중</span>`) : ''}
                         ${service.base_url && isHealthy ? 
                             (() => { const u = (service.metadata?.direct_access && service.metadata?.port) ? (location.protocol + '//' + location.hostname + ':' + service.metadata.port + '/') : ('/api/' + service.id + '/'); return `<a href="#" class="btn btn-primary" data-service-url="${u.replace(/"/g, '&quot;')}" onclick="openServiceAccess(event, '${service.id}', this.dataset.serviceUrl)">서비스 접속</a>`; })() : ''}
-                        ${service.api_prefix && isHealthy ? 
-                            `<a href="/api/${service.id}/" class="btn btn-secondary" onclick="openApiAccess(event, '/api/${service.id}/')">API 접속</a>` : ''}
+                        ${service.api_prefix && isHealthy && !(service.metadata?.hide_api_button) ? 
+                            (() => { const apiUrl = service.metadata?.api_url || ('/api/' + service.id + '/'); const href = apiUrl.startsWith('http') ? apiUrl : (apiUrl.startsWith('/') ? apiUrl : '/api/' + service.id + '/'); return `<a href="${href}" class="btn btn-secondary" onclick="openApiAccess(event, '${apiUrl.replace(/'/g, "\\'")}')">API 접속</a>`; })() : ''}
                         ${service.api_prefix && userInfo.is_admin ? 
                             `<a href="/services/${service.id}/api-info" class="btn btn-secondary">API 정보</a>` : ''}
                         <a href="/services/${service.id}" class="btn btn-secondary">상세 정보</a>
@@ -478,6 +555,10 @@
 
         async function openApiAccess(event, url) {
             event.preventDefault();
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                window.open(url, '_blank');
+                return;
+            }
             try {
                 const res = await fetch(url, { credentials: 'include' });
                 if (!res.ok) {
@@ -501,6 +582,51 @@
             };
             return labels[type] || type;
         }
+
+        function requestFullscreenAndClose() {
+            var overlay = document.getElementById('fullscreen-overlay');
+            if (overlay) overlay.style.display = 'none';
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(function() { updateFullscreenButton(true); }).catch(function() {});
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => updateFullscreenButton(true)).catch(() => {});
+            } else {
+                document.exitFullscreen().then(() => updateFullscreenButton(false)).catch(() => {});
+            }
+        }
+
+        function updateFullscreenButton(isFullscreen) {
+            const expand = document.getElementById('fullscreen-icon-expand');
+            const exit = document.getElementById('fullscreen-icon-exit');
+            const text = document.getElementById('fullscreen-text');
+            if (expand && exit && text) {
+                expand.style.display = isFullscreen ? 'none' : 'inline';
+                exit.style.display = isFullscreen ? 'inline' : 'none';
+                text.textContent = isFullscreen ? '전체화면 해제' : '전체화면';
+            }
+        }
+
+        document.addEventListener('fullscreenchange', function() {
+            updateFullscreenButton(!!document.fullscreenElement);
+            if (!document.fullscreenElement && document.hidden) {
+                sessionStorage.setItem('dashboard_restore_fullscreen', '1');
+            }
+        });
+
+        // 새 창/탭 열어도 대시보드 전체화면 유지: 탭 전환 후 돌아오면 자동 복원
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && document.fullscreenElement) {
+                sessionStorage.setItem('dashboard_restore_fullscreen', '1');
+            }
+            if (!document.hidden && sessionStorage.getItem('dashboard_restore_fullscreen') === '1') {
+                sessionStorage.removeItem('dashboard_restore_fullscreen');
+                document.documentElement.requestFullscreen().then(function() { updateFullscreenButton(true); }).catch(function() {});
+            }
+        });
 
         async function logout() {
             try {

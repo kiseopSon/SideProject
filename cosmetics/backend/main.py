@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
 from app.api import routes
 from app.api import admin_routes
 import threading
@@ -15,23 +19,13 @@ app = FastAPI(
 )
 
 # CORS 설정 (프론트엔드와 통신하기 위해)
-# 개발 환경에서는 localhost 포트 범위 허용
-# localhost와 127.0.0.1 모두 지원 (5173-5180 포트 범위)
-allowed_origins = []
-for port in range(5173, 5181):  # 5173부터 5180까지
-    allowed_origins.extend([
-        f"http://localhost:{port}",
-        f"http://127.0.0.1:{port}",
-    ])
-# Additional common ports
-allowed_origins.extend([
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
-])
+# 개발: localhost:9005, 프로덕션: EAI Hub 프록시 경유 (sonkiseop.iptime.org)
+allowed_origins = [
+    "http://localhost:9005",
+    "http://127.0.0.1:9005",
+    "http://sonkiseop.iptime.org",
+    "https://sonkiseop.iptime.org",
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -55,4 +49,10 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+# 빌드된 프론트엔드 정적 파일 서빙 (HMR WebSocket 없음 - 콘솔 오류 제거)
+# 배포 전: cd frontend && npm run build
+_frontend_dist = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if _frontend_dist.exists():
+    app.mount("/api/cosmetics", StaticFiles(directory=str(_frontend_dist), html=True), name="cosmetics-frontend")
 

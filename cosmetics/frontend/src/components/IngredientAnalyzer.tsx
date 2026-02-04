@@ -68,18 +68,9 @@ const IngredientAnalyzer = () => {
       // 크롤링 결과를 상태에 저장
       setScrapeResult(scrapeResult.results)
       
-      // 업데이트 결과 확인
-      const hasUpdates = scrapeResult.results.success.length > 0
-      const hasSkipped = scrapeResult.results.skipped.length > 0
-      const hasFailed = scrapeResult.results.failed.length > 0
-      
       // 항상 재분석 수행 (데이터베이스가 업데이트되었거나, 이미 있는 정보를 찾을 수 있을 수 있으므로)
       const updatedResult = await analyzeIngredients(ingredients, skinType)
       setResult(updatedResult)
-      
-      // 재분석 후 알 수 없는 성분 개수 확인
-      const stillUnknown = updatedResult.analyzed_ingredients.filter(ing => ing.effect === '알 수 없음').length
-      const foundCount = unknownIngredientNames.length - stillUnknown
       
       // 오류 메시지 초기화
       setError(null)

@@ -25,7 +25,9 @@ def main():
     backend_cmd = [
         python_exec, "-m", "uvicorn",
         "main:app",
-        "--reload"
+        "--reload",
+        "--host", "127.0.0.1",
+        "--port", "8500"
     ]
     
     # Frontend command
@@ -33,8 +35,8 @@ def main():
     
     try:
         print("Starting servers...")
-        print("Backend: http://localhost:8000")
-        print("Frontend: http://localhost:5173 (or other port)")
+        print("Backend: http://localhost:8500")
+        print("Frontend: http://localhost:9005 (or other port)")
         print("=" * 50)
         print("Press Ctrl+C to stop")
         print("=" * 50)

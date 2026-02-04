@@ -509,10 +509,11 @@ async def service_detail_page(service_id: str, request: Request):
             download_link_html = f'<a href="/api/download/{service_id}" class="btn btn-primary" download>다운로드</a>'
         else:
             download_link_html = '<span class="btn btn-secondary" style="opacity:0.7; cursor:not-allowed;">준비 중</span>'
-    elif service_dict.get("api_prefix"):
+    elif service_dict.get("api_prefix") and not (service_dict.get("metadata") or {}).get("hide_api_button"):
         if is_healthy:
-            api_url = f"/api/{service_id}/"
-            api_link_html = '<a href="{}" class="btn btn-secondary" onclick="event.preventDefault(); openApiAccess(\'{}\')">API 접속</a>'.format(api_url, api_url)
+            meta = service_dict.get("metadata") or {}
+            api_url = meta.get("api_url") or f"/api/{service_id}/"
+            api_link_html = '<a href="{}" class="btn btn-secondary" onclick="event.preventDefault(); openApiAccess(\'{}\')">API 접속</a>'.format(api_url, api_url.replace("'", "\\'"))
         if show_api_info:
             api_info_link_html = '<a href="/services/{}/api-info" class="btn btn-secondary">API 정보</a>'.format(service_id)
 
@@ -937,11 +938,32 @@ async def service_api_info_page(service_id: str, request: Request):
         <script>
             function copyUrl() {{
                 var el = document.getElementById("apiUrl");
-                navigator.clipboard.writeText(el.textContent).then(function() {{
-                    alert("URL이 클립보드에 복사되었습니다. 필요한 대상에게 공유할 수 있습니다.");
-                }}).catch(function() {{
-                    alert("복사에 실패했습니다. URL을 직접 선택해 복사해 주세요.");
-                }});
+                var text = el.textContent;
+                if (navigator.clipboard && navigator.clipboard.writeText) {{
+                    navigator.clipboard.writeText(text).then(function() {{
+                        alert("URL이 클립보드에 복사되었습니다. 필요한 대상에게 공유할 수 있습니다.");
+                    }}).catch(fallbackCopy);
+                }} else {{
+                    fallbackCopy();
+                }}
+                function fallbackCopy() {{
+                    var ta = document.createElement("textarea");
+                    ta.value = text;
+                    ta.style.position = "fixed";
+                    ta.style.left = "-9999px";
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try {{
+                        if (document.execCommand("copy")) {{
+                            alert("URL이 클립보드에 복사되었습니다. 필요한 대상에게 공유할 수 있습니다.");
+                        }} else {{
+                            throw new Error("execCommand failed");
+                        }}
+                    }} catch (e) {{
+                        alert("복사에 실패했습니다. URL을 직접 선택해 복사해 주세요.");
+                    }}
+                    document.body.removeChild(ta);
+                }}
             }}
         </script>
     </body>
@@ -1014,6 +1036,25 @@ async def service_health_check_debug(service_id: str):
         }
 
 
+def _check_urls_to_try(url: str) -> list:
+    """localhost/127.0.0.1/::1 교차 시도용 URL 목록"""
+    try:
+        from urllib.parse import urlparse
+        p = urlparse(url)
+        if p.hostname not in ("localhost", "127.0.0.1", "::1"):
+            return [url]
+        scheme = p.scheme or "http"
+        port = f":{p.port}" if p.port else ""
+        path = (p.path or "/") + (f"?{p.query}" if p.query else "")
+        return [
+            f"{scheme}://localhost{port}{path}",
+            f"{scheme}://127.0.0.1{port}{path}",
+            f"{scheme}://[::1]{port}{path}",
+        ]
+    except Exception:
+        return [url]
+
+
 @app.get("/api/check-service-access/{service_id}")
 async def check_service_access(service_id: str, request: Request):
     """서비스 접속 가능 여부 확인"""
@@ -1022,23 +1063,26 @@ async def check_service_access(service_id: str, request: Request):
         raise HTTPException(status_code=503, detail="서비스에 접근할 수 없습니다")
     meta = service.metadata or {}
     use_proxy_path = meta.get("proxy_base_path", False)
-    try:
-        async with httpx.AsyncClient(timeout=5, follow_redirects=True) as client:
-            if use_proxy_path:
-                # proxy_base_path 서비스: 게이트웨이 경로로 검사
-                base = str(request.base_url).rstrip("/")
-                url = f"{base}/api/{service_id}/"
-            else:
-                # 그 외: 백엔드 직접 검사 (자체 요청 회피)
-                url = service.get_health_url() or f"{service.base_url.rstrip('/')}/"
-            resp = await client.get(url)
-            if resp.status_code >= 300:
+    if use_proxy_path:
+        urls_to_try = [f"{str(request.base_url).rstrip('/')}/api/{service_id}/"]
+    else:
+        base_url = service.get_health_url() or f"{service.base_url.rstrip('/')}/"
+        urls_to_try = _check_urls_to_try(base_url)
+    last_err = None
+    for url in urls_to_try:
+        try:
+            async with httpx.AsyncClient(timeout=5, follow_redirects=True) as client:
+                resp = await client.get(url)
+                if resp.status_code >= 300:
+                    raise HTTPException(status_code=503, detail="서비스에 접근할 수 없습니다")
+                return {"ok": True}
+        except HTTPException:
+            raise
+        except Exception as e:
+            last_err = e
+            if url == urls_to_try[-1]:
                 raise HTTPException(status_code=503, detail="서비스에 접근할 수 없습니다")
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(status_code=503, detail="서비스에 접근할 수 없습니다")
-    return {"ok": True}
+    raise HTTPException(status_code=503, detail="서비스에 접근할 수 없습니다")
 
 
 # 데스크톱 도구 다운로드
@@ -1066,22 +1110,23 @@ async def download_service_file(service_id: str):
     )
 
 
-# 슬래시 없는 /api/{service_id} 요청 → 303 리다이렉트 (307 방지)
+# Coffee statistics-service가 루트 경로로 리다이렉트하는 URL → coffee-gateway 프록시로 전달
+@app.get("/complete-form")
+@app.get("/experiment-form")
+@app.get("/search-page")
+@app.get("/history-page")
+async def coffee_path_redirect(request: Request):
+    """Coffee 앱의 /complete-form, /experiment-form → /api/coffee-gateway/... 로 리다이렉트"""
+    path = request.url.path.lstrip("/")
+    query = request.url.query
+    redirect_url = f"/api/coffee-gateway/{path}"
+    if query:
+        redirect_url += f"?{query}"
+    return RedirectResponse(url=redirect_url, status_code=307)
+
+
+# 슬래시 없는 /api/{service_id} 요청 → 리다이렉트 (proxy 먼저 등록해 POST /api/experiments 직접 프록시)
 _RESERVED_API_PATHS = {"services", "health", "me", "check-service-access", "auth", "download"}
-
-
-@app.get("/api/{service_id}", include_in_schema=False)
-async def api_service_redirect(service_id: str, request: Request):
-    """슬래시 없는 API 경로를 슬래시 포함으로 리다이렉트 (307→303)"""
-    if service_id in _RESERVED_API_PATHS:
-        raise HTTPException(status_code=404, detail="Not Found")
-    service = service_registry.get_service(service_id)
-    if service:
-        meta = service.metadata or {}
-        if meta.get("direct_access") and meta.get("port"):
-            redirect_url = f"{request.url.scheme}://{request.url.hostname}:{meta['port']}/"
-            return RedirectResponse(url=redirect_url, status_code=307)
-    return RedirectResponse(url=f"/api/{service_id}/", status_code=303)
 
 
 @app.api_route("/api/{service_id}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
@@ -1107,6 +1152,20 @@ async def proxy_request(service_id: str, path: str, request: Request):
     except Exception as e:
         logger.error(f"프록시 라우팅 오류: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"프록시 오류: {str(e)}")
+
+
+@app.api_route("/api/{service_id}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], include_in_schema=False)
+async def api_service_redirect(service_id: str, request: Request):
+    """슬래시 없는 /api/{service_id} → 슬래시 포함으로 리다이렉트 (path 없는 경우만)"""
+    if service_id in _RESERVED_API_PATHS:
+        raise HTTPException(status_code=404, detail="Not Found")
+    service = service_registry.get_service(service_id)
+    if service:
+        meta = service.metadata or {}
+        if meta.get("direct_access") and meta.get("port"):
+            redirect_url = f"{request.url.scheme}://{request.url.hostname}:{meta['port']}/"
+            return RedirectResponse(url=redirect_url, status_code=307)
+    return RedirectResponse(url=f"/api/{service_id}/", status_code=307)
 
 
 @app.get("/dashboard", response_class=HTMLResponse)

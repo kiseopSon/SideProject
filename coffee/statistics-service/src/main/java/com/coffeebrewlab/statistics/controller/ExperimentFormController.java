@@ -1,6 +1,7 @@
 package com.coffeebrewlab.statistics.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,10 +10,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ExperimentFormController {
 
+    @Value("${gateway.port:8101}")
+    private int gatewayPort;
+
     @GetMapping(value = {"/", "/experiment-form"}, produces = MediaType.TEXT_HTML_VALUE)
     public String getExperimentForm() {
         log.info("📝 [EXPERIMENT-FORM] 실험 입력 폼 페이지 요청");
-        return generateExperimentFormHtml();
+        return generateExperimentFormHtml().replace("{{GATEWAY_PORT}}", String.valueOf(gatewayPort));
     }
 
     private String generateExperimentFormHtml() {
@@ -370,12 +374,16 @@ public class ExperimentFormController {
                     </div>
                     
                     <div class="nav-links">
-                        <a href="/dashboard">📊 대시보드</a>
-                        <a href="/experiment-form">🔄 새 실험</a>
+                        <a href="dashboard">📊 대시보드</a>
+                        <a href="experiment-form">🔄 새 실험</a>
                     </div>
                 </div>
                 
                 <script>
+                    const API_BASE = (window.location.port === '8000' || window.location.pathname.startsWith('/api/coffee-gateway'))
+                        ? '/api/coffee-gateway'
+                        : ((window.location.port === '9002' || window.location.port === '8103')
+                            ? (window.location.protocol + '//' + window.location.hostname + ':{{GATEWAY_PORT}}') : '');
                     const form = document.getElementById('experimentForm');
                     const successAlert = document.getElementById('successAlert');
                     const errorAlert = document.getElementById('errorAlert');
@@ -403,7 +411,7 @@ public class ExperimentFormController {
                         };
                         
                         try {
-                            const response = await fetch('/api/experiments', {
+                            const response = await fetch((API_BASE || '') + '/api/experiments', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -420,7 +428,7 @@ public class ExperimentFormController {
                                 
                                 // 2초 후 완료 폼으로 이동
                                 setTimeout(() => {
-                                    window.location.href = '/complete-form?id=' + result.id;
+                                    window.location.href = (API_BASE || window.location.origin) + '/complete-form?id=' + result.id;
                                 }, 2000);
                             } else {
                                 const error = await response.json();

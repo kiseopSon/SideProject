@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import IngredientAnalyzer from './components/IngredientAnalyzer'
 import './App.css'
 

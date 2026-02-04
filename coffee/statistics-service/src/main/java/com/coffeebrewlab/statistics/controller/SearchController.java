@@ -1,6 +1,7 @@
 package com.coffeebrewlab.statistics.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,10 +10,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SearchController {
 
+    @Value("${gateway.port:8101}")
+    private int gatewayPort;
+
     @GetMapping(value = "/search-page", produces = MediaType.TEXT_HTML_VALUE)
     public String getSearchPage() {
         log.info("🔍 [SEARCH] 검색 페이지 요청");
-        return generateSearchPageHtml();
+        return generateSearchPageHtml().replace("{{GATEWAY_PORT}}", String.valueOf(gatewayPort));
     }
 
     private String generateSearchPageHtml() {
@@ -394,13 +398,17 @@ public class SearchController {
                     </div>
                     
                     <div class="nav-links">
-                        <a href="/dashboard">📊 대시보드</a>
-                        <a href="/experiment-form">➕ 새 실험</a>
-                        <a href="/history-page">📅 히스토리</a>
+                        <a href="dashboard">📊 대시보드</a>
+                        <a href="experiment-form">➕ 새 실험</a>
+                        <a href="history-page">📅 히스토리</a>
                     </div>
                 </div>
                 
                 <script>
+                    const API_BASE = (window.location.port === '8000' || window.location.pathname.startsWith('/api/coffee-gateway'))
+                        ? '/api/coffee-gateway'
+                        : ((window.location.port === '9002' || window.location.port === '8103')
+                            ? (window.location.protocol + '//' + window.location.hostname + ':{{GATEWAY_PORT}}') : '');
                     let currentPage = 0;
                     const pageSize = 10;
                     
@@ -414,12 +422,12 @@ public class SearchController {
                         const sortBy = document.getElementById('sortBy').value;
                         const sortOrder = document.getElementById('sortOrder').value;
                         
-                        let url = '/api/statistics/experiments?';
+                        let url = (API_BASE || '') + '/api/statistics/experiments?';
                         url += 'sortBy=' + sortBy + '&sortOrder=' + sortOrder;
                         url += '&page=' + currentPage + '&size=' + pageSize;
                         
                         if (query) {
-                            url = '/api/statistics/search?query=' + encodeURIComponent(query) + 
+                            url = (API_BASE || '') + '/api/statistics/search?query=' + encodeURIComponent(query) + 
                                   '&page=' + currentPage + '&size=' + pageSize;
                         } else {
                             if (coffeeBean) url += '&coffeeBean=' + encodeURIComponent(coffeeBean);
@@ -489,7 +497,7 @@ public class SearchController {
                             buttonElement.textContent = '삭제 중...';
                         }
                         
-                        fetch(`/api/experiments/${experimentId}`, {
+                        fetch((API_BASE || '') + `/api/experiments/${experimentId}`, {
                             method: 'DELETE',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -514,12 +522,12 @@ public class SearchController {
                                     const sortOrder = document.getElementById('sortOrder').value;
                                     
                                     // 검색 조건에 맞게 URL 구성
-                                    let url = '/api/statistics/experiments?';
+                                    let url = (API_BASE || '') + '/api/statistics/experiments?';
                                     url += 'sortBy=' + sortBy + '&sortOrder=' + sortOrder;
                                     url += '&page=' + currentPage + '&size=' + pageSize;
                                     
                                     if (query) {
-                                        url = '/api/statistics/search?query=' + encodeURIComponent(query) + 
+                                        url = (API_BASE || '') + '/api/statistics/search?query=' + encodeURIComponent(query) + 
                                               '&page=' + currentPage + '&size=' + pageSize;
                                     } else {
                                         if (coffeeBean) url += '&coffeeBean=' + encodeURIComponent(coffeeBean);

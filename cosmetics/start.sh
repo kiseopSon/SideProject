@@ -7,7 +7,7 @@ echo ""
 
 # Start backend server (background)
 cd backend
-python -m uvicorn main:app --reload &
+python -m uvicorn main:app --reload --host 127.0.0.1 --port 8500 &
 BACKEND_PID=$!
 
 # Start frontend server (background)
@@ -17,8 +17,8 @@ FRONTEND_PID=$!
 
 echo ""
 echo "Servers started!"
-echo "Backend: http://localhost:8000 (PID: $BACKEND_PID)"
-echo "Frontend: http://localhost:5173 (PID: $FRONTEND_PID)"
+echo "Backend: http://localhost:8500 (PID: $BACKEND_PID)"
+echo "Frontend: http://localhost:9005 (PID: $FRONTEND_PID)"
 echo ""
 echo "Press Ctrl+C to stop"
 

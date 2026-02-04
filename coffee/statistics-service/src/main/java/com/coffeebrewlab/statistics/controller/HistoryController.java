@@ -22,10 +22,13 @@ public class HistoryController {
 
     private final SearchService searchService;
 
+    @org.springframework.beans.factory.annotation.Value("${gateway.port:8101}")
+    private int gatewayPort;
+
     @GetMapping(value = "/history-page", produces = MediaType.TEXT_HTML_VALUE)
     public String getHistoryPage() {
         log.info("📅 [HISTORY] 히스토리 페이지 요청");
-        return generateHistoryPageHtml();
+        return generateHistoryPageHtml().replace("{{GATEWAY_PORT}}", String.valueOf(gatewayPort));
     }
 
 
@@ -257,13 +260,17 @@ public class HistoryController {
                     </div>
                     
                     <div class="nav-links">
-                        <a href="/dashboard">📊 대시보드</a>
-                        <a href="/search-page">🔍 검색</a>
-                        <a href="/experiment-form">➕ 새 실험</a>
+                        <a href="dashboard">📊 대시보드</a>
+                        <a href="search-page">🔍 검색</a>
+                        <a href="experiment-form">➕ 새 실험</a>
                     </div>
                 </div>
                 
                 <script>
+                    const API_BASE = (window.location.port === '8000' || window.location.pathname.startsWith('/api/coffee-gateway'))
+                        ? '/api/coffee-gateway'
+                        : ((window.location.port === '9002' || window.location.port === '8103')
+                            ? (window.location.protocol + '//' + window.location.hostname + ':{{GATEWAY_PORT}}') : '');
                     // 전역 함수 정의
                     window.displayStats = function(count, avgScore) {
                         const statsDiv = document.getElementById('statsSummary');
@@ -318,7 +325,7 @@ public class HistoryController {
                         const date = datePicker.value;
                         if (!date) return;
                         
-                        fetch(`/api/statistics/history/date?date=${date}`)
+                        fetch((API_BASE || '') + `/api/statistics/history/date?date=${date}`)
                             .then(response => {
                                 if (!response.ok) {
                                     throw new Error('Network response was not ok: ' + response.status);
@@ -355,7 +362,7 @@ public class HistoryController {
                         const month = monthSelect.value;
                         if (!year || !month) return;
                         
-                        fetch(`/api/statistics/history/month?year=${year}&month=${month}`)
+                        fetch((API_BASE || '') + `/api/statistics/history/month?year=${year}&month=${month}`)
                             .then(response => {
                                 if (!response.ok) {
                                     throw new Error('Network response was not ok: ' + response.status);

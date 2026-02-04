@@ -28,7 +28,7 @@ python scripts/update_ingredients.py --missing --delay 2.0
 
 1. **특정 성분 추가**
 ```bash
-POST http://localhost:8000/api/admin/ingredient/add
+POST http://localhost:8500/api/admin/ingredient/add
 {
   "name": "라즈베리추출물",
   "effect": "추출물",
@@ -39,7 +39,7 @@ POST http://localhost:8000/api/admin/ingredient/add
 
 2. **여러 성분 크롤링**
 ```bash
-POST http://localhost:8000/api/admin/scrape
+POST http://localhost:8500/api/admin/scrape
 {
   "ingredient_names": ["라즈베리추출물", "딸기추출물"],
   "delay": 1.0
@@ -48,7 +48,7 @@ POST http://localhost:8000/api/admin/scrape
 
 3. **알 수 없는 성분 자동 크롤링**
 ```bash
-POST http://localhost:8000/api/admin/scrape/missing
+POST http://localhost:8500/api/admin/scrape/missing
 ```
 
 ## 주기적 자동 업데이트

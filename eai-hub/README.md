@@ -40,45 +40,48 @@ python main.py
 또는 uvicorn 직접 실행:
 
 ```powershell
-uvicorn main:app --host 0.0.0.0 --port 9000 --reload
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### 4. 접속
 
-- **대시보드**: http://localhost:9000/dashboard
-- **API 문서**: http://localhost:9000/docs
-- **서비스 목록**: http://localhost:9000/api/services
-- **헬스체크**: http://localhost:9000/api/health
+- **대시보드**: http://localhost:8000/dashboard
+- **API 문서**: http://localhost:8000/docs
+- **서비스 목록**: http://localhost:8000/api/services
+- **헬스체크**: http://localhost:8000/api/health
 
 ## 통합된 서비스
 
-1. **AI Incident Intelligence Platform** (포트: 8000, 8080, 9093)
-   - Python FastAPI 기반 인시던트 처리 플랫폼
-   - API 접두사: `/api/ai-incident`
+| 서비스 ID | 서비스명 | 포트 | API 접두사 | 비고 |
+|-----------|----------|------|------------|------|
+| ai-incident | AI Incident Intelligence Platform | 9000 | `/api/ai-incident` | - |
+| ball-bounce | Ball Bounce Game | 9001 | `/api/ball-bounce/` | proxy_base_path |
+| coffee-gateway | Coffee Brew Lab | 9002 | `/api/coffee-gateway` | 대시보드·폼·검색·히스토리 |
+| statistics | Coffee Statistics API | 9002 | `/api/statistics` | dashboard_hidden |
+| experiments | Experiments API | 8101 | `/api/experiments` | gateway 경유, dashboard_hidden |
+| coffee-eureka | Coffee Eureka (Discovery) | 8100 | `/api/coffee-eureka` | dashboard_hidden |
+| cosmetics | Cosmetics Ingredient Analyzer | 9003 | `/api/cosmetics` | - |
+| deffender-game | Deffender Game | 9004 | - | 직접 접속 (direct_access) |
+| my-lover-is-clumsy | My Lover Is Clumsy | 9005 | - | - |
+| regex-generator | Regex Generator | - | - | 다운로드 전용 |
+| sosadworld-gateway | SoSadWorld Gateway Service | 9006 | `/api/sosadworld` | - |
 
-2. **Ball Bounce Game** (포트: 5173)
-   - React/TypeScript 기반 웹 게임
+> EAI Hub 기본 포트: **8000** (`.env`에서 변경 가능)
 
-3. **Coffee Gateway Service** (포트: 8080, 8081, 8761)
-   - Java Spring Cloud 기반 마이크로서비스
-   - API 접두사: `/api/coffee`
+### Coffee Brew Lab (커피 추출 실험)
 
-4. **Cosmetics Ingredient Analyzer** (포트: 8000, 3000)
-   - Python FastAPI + React 기반 성분 분석 서비스
-   - API 접두사: `/api/cosmetics`
+Coffee Brew Lab은 `/api/coffee-gateway/` 경로로 접근합니다. statistics-service(9002)가 대시보드·폼·검색·히스토리를 제공하며, `/api/experiments` 요청은 내부적으로 Gateway(8101)로 프록시됩니다.
 
-5. **Deffender Game** (포트: 19006)
-   - React Native/Expo 기반 모바일 게임
+| 경로 | 설명 |
+|------|------|
+| `/api/coffee-gateway/` | 실험 입력 폼 (루트) |
+| `/api/coffee-gateway/dashboard` | 대시보드 |
+| `/api/coffee-gateway/experiment-form` | 새 실험 작성 |
+| `/api/coffee-gateway/complete-form` | 실험 완료 (맛 평가) |
+| `/api/coffee-gateway/search-page` | Elasticsearch 기반 실험 검색 |
+| `/api/coffee-gateway/history-page` | 날짜별 실험 히스토리 |
 
-6. **My Lover Is Clumsy** (포트: 19000)
-   - React Native/Expo + Supabase 기반 앱
-
-7. **Regex Generator**
-   - Python 데스크톱 앱 (API 없음)
-
-8. **SoSadWorld Gateway Service** (포트: 8080, 8082, 18500)
-   - Java Spring Cloud + Consul 기반 감정 분석 서비스
-   - API 접두사: `/api/sosadworld`
+**루트 경로 리다이렉트**: `/dashboard`, `/complete-form`, `/experiment-form`, `/search-page`, `/history-page` → `/api/coffee-gateway/...` 로 자동 리다이렉트
 
 ## API 사용법
 
@@ -115,8 +118,9 @@ POST /api/{service_id}/{path}
 ```
 
 예시:
-- `GET /api/ai-incident/api/v1/classify` → `http://localhost:8000/api/v1/classify`
-- `GET /api/coffee/experiments` → `http://localhost:8080/experiments`
+- `GET /api/ai-incident/api/v1/classify` → `http://localhost:9000/api/v1/classify`
+- `GET /api/coffee-gateway/dashboard` → `http://localhost:9002/dashboard` (Coffee Brew Lab)
+- `POST /api/coffee-gateway/api/experiments` → statistics(9002) → Gateway(8101) 프록시
 
 ## 서비스 설정
 
@@ -146,17 +150,22 @@ POST /api/{service_id}/{path}
 ## 아키텍처
 
 ```
-                    ┌─────────────┐
-                    │   EAI Hub   │
-                    │  (Port 9000)│
-                    └──────┬──────┘
-                           │
-        ┌──────────────────┼──────────────────┐
-        │                  │                  │
-   ┌────▼────┐       ┌─────▼─────┐      ┌─────▼─────┐
-   │ Service │       │  Service  │      │  Service  │
-   │    1    │       │     2     │      │     ...   │
-   └─────────┘       └───────────┘      └───────────┘
+                              ┌─────────────────────────────────────┐
+                              │           EAI Hub (Port 8000)        │
+                              │  FastAPI + Service Registry + Proxy   │
+                              │  로그인·대시보드·프록시 라우팅·헬스체크   │
+                              └──────────────────┬──────────────────┘
+                                                 │
+     ┌───────────────────────────────────────────┼───────────────────────────────────────────┐
+     │              │              │              │              │              │              │
+     ▼              ▼              ▼              ▼              ▼              ▼              ▼
+┌─────────┐  ┌──────────┐  ┌──────────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐  ┌─────────┐
+│ai-incident│  │ball-bounce│  │coffee-gateway│  │cosmetics │  │deffender │  │sosadworld-   │  │  ...    │
+│  :9000   │  │  :9001   │  │   :9002     │  │  :9003   │  │  :9004   │  │gateway :9006 │  │         │
+│          │  │(Vite SPA)│  │(Statistics) │  │          │  │(직접접속) │  │              │  │         │
+└─────────┘  └──────────┘  └──────┬───────┘  └──────────┘  └──────────┘  └──────────────┘  └─────────┘
+                                  │
+                    Coffee 내부: /api/experiments → Gateway(8101) 프록시
 ```
 
 ## 개발
@@ -176,6 +185,8 @@ eai-hub/
 ├── static/
 │   └── dashboard.html     # 통합 대시보드
 ├── services.json          # 서비스 설정 파일
+├── docs/
+│   └── SERVICES.md        # 서비스 상세 가이드
 ├── requirements.txt       # Python 의존성
 └── README.md             # 문서
 ```

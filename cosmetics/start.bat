@@ -9,9 +9,9 @@ cd backend
 echo Starting backend server...
 REM Activate virtual environment if exists
 if exist "venv\Scripts\activate.bat" (
-    start "Backend Server (Port 8000)" cmd /k "venv\Scripts\activate.bat && python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000"
+    start "Backend Server (Port 8500)" cmd /k "venv\Scripts\activate.bat && python -m uvicorn main:app --reload --host 127.0.0.1 --port 8500"
 ) else (
-    start "Backend Server (Port 8000)" cmd /k "python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000"
+    start "Backend Server (Port 8500)" cmd /k "python -m uvicorn main:app --reload --host 127.0.0.1 --port 8500"
 )
 timeout /t 2 /nobreak >nul
 
@@ -24,9 +24,9 @@ echo.
 echo ========================================
 echo Servers started!
 echo ========================================
-echo Backend: http://localhost:8000
-echo Backend API Docs: http://localhost:8000/docs
-echo Frontend: http://127.0.0.1:3000 (or check the terminal for actual port)
+echo Backend: http://localhost:8500
+echo Backend API Docs: http://localhost:8500/docs
+echo Frontend: http://127.0.0.1:9005 (or check the terminal for actual port)
 echo.
 echo Close each window to stop the server.
 echo.

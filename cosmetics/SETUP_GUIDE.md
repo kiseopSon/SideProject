@@ -23,12 +23,12 @@ python -m pip install requests beautifulsoup4 lxml schedule
 1. 백엔드 서버 실행:
 ```bash
 cd backend
-uvicorn main:app --reload
+uvicorn main:app --reload --host 127.0.0.1 --port 8500
 ```
 
 2. 서버가 실행 중인지 확인:
-   - 브라우저에서 `http://localhost:8000` 접속
-   - 또는 `http://localhost:8000/docs` 접속 (API 문서)
+   - 브라우저에서 `http://localhost:8500` 접속
+   - 또는 `http://localhost:8500/docs` 접속 (API 문서)
 
 ### 3. 500 Internal Server Error
 **원인**: 서버 내부 오류 (코드 오류 또는 모듈 누락)
@@ -54,12 +54,12 @@ python -m pip install -r requirements.txt
 ### Step 2: 백엔드 서버 시작
 ```bash
 cd backend
-uvicorn main:app --reload
+uvicorn main:app --reload --host 127.0.0.1 --port 8500
 ```
 
 서버가 정상적으로 시작되면 다음과 같은 메시지가 표시됩니다:
 ```
-INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Uvicorn running on http://127.0.0.1:8500 (Press CTRL+C to quit)
 INFO:     Started reloader process
 INFO:     Started server process
 INFO:     Waiting for application startup.
@@ -75,7 +75,7 @@ npm run dev
 ```
 
 ### Step 4: 테스트
-1. 브라우저에서 `http://localhost:5175` 접속
+1. 브라우저에서 `http://localhost:9005` 접속
 2. 성분표 입력하여 테스트
 
 ## 일반적인 문제들
@@ -89,14 +89,14 @@ pip install -r requirements.txt
 ```
 
 ### 포트 충돌
-만약 8000 포트가 이미 사용 중이면:
+만약 8500 포트가 이미 사용 중이면:
 ```bash
-uvicorn main:app --reload --port 8001
+uvicorn main:app --reload --host 127.0.0.1 --port 8501
 ```
 
 그리고 `frontend/src/services/api.ts`에서 포트를 수정:
 ```typescript
-const API_BASE_URL = 'http://localhost:8001'
+const API_BASE_URL = 'http://localhost:8501'
 ```
 
 ## 문제가 계속되면

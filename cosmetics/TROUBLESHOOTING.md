@@ -4,7 +4,7 @@
 
 ### 1. CORS 오류 (가장 중요)
 ```
-Access to XMLHttpRequest at 'http://localhost:8000/api/analyze' from origin 'http://localhost:5175' 
+Access to XMLHttpRequest at 'http://localhost:8500/api/analyze' from origin 'http://localhost:9005' 
 has been blocked by CORS policy
 ```
 
@@ -12,7 +12,7 @@ has been blocked by CORS policy
 
 **해결 방법**:
 1. 백엔드 서버가 실행 중인지 확인하세요
-2. 포트 번호가 올바른지 확인하세요 (프론트엔드: 5175, 백엔드: 8000)
+2. 포트 번호가 올바른지 확인하세요 (프론트엔드: 9005, 백엔드: 8500)
 3. 백엔드 서버를 재시작하세요 (변경사항 적용)
 
 ### 2. 404 오류
@@ -25,7 +25,7 @@ Failed to load resource: the server responded with a status of 404 (Not Found)
 - API 경로가 잘못되었을 수 있습니다
 
 **해결 방법**:
-1. 백엔드 서버 실행 확인: `http://localhost:8000` 에 접속하여 확인
+1. 백엔드 서버 실행 확인: `http://localhost:8500` 에 접속하여 확인
 2. API 경로 확인: `/api/analyze` 가 올바른지 확인
 
 ### 3. 네트워크 오류
@@ -55,15 +55,15 @@ A listener indicated an asynchronous response by returning true, but the message
 ### 백엔드 서버 확인
 브라우저나 터미널에서 다음 URL에 접속:
 ```bash
-curl http://localhost:8000
-# 또는 브라우저에서 http://localhost:8000 접속
+curl http://localhost:8500
+# 또는 브라우저에서 http://localhost:8500 접속
 ```
 
 응답이 오면 서버가 정상 실행 중입니다.
 
 ### API 엔드포인트 확인
 ```bash
-curl http://localhost:8000/api/analyze -X POST -H "Content-Type: application/json" -d "{\"ingredients\":\"테스트\",\"skin_type\":\"oily\"}"
+curl http://localhost:8500/api/analyze -X POST -H "Content-Type: application/json" -d "{\"ingredients\":\"테스트\",\"skin_type\":\"oily\"}"
 ```
 
 ## 단계별 해결 절차
@@ -74,7 +74,7 @@ curl http://localhost:8000/api/analyze -X POST -H "Content-Type: application/jso
    python -m venv venv
    venv\Scripts\activate  # Windows
    pip install -r requirements.txt
-   uvicorn main:app --reload
+   uvicorn main:app --reload --host 127.0.0.1 --port 8500
    ```
 
 2. **프론트엔드 서버 실행** (새 터미널)
@@ -85,8 +85,8 @@ curl http://localhost:8000/api/analyze -X POST -H "Content-Type: application/jso
    ```
 
 3. **브라우저에서 확인**
-   - 프론트엔드: http://localhost:5175 (또는 표시된 포트)
-   - 백엔드: http://localhost:8000
+   - 프론트엔드: http://localhost:9005 (또는 표시된 포트)
+   - 백엔드: http://localhost:8500
 
 4. **CORS 오류가 계속되면**
    - 백엔드 서버를 재시작하세요
@@ -95,8 +95,8 @@ curl http://localhost:8000/api/analyze -X POST -H "Content-Type: application/jso
 
 ## 현재 설정된 포트
 
-- **백엔드**: 8000 (변경 가능)
-- **프론트엔드**: 5175 (Vite가 자동으로 다음 사용 가능한 포트 선택)
+- **백엔드**: 8500 (변경 가능)
+- **프론트엔드**: 9005 (Vite가 자동으로 다음 사용 가능한 포트 선택)
 
 ## 추가된 성분 데이터
 

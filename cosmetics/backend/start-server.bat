@@ -28,10 +28,10 @@ if errorlevel 1 (
 
 echo.
 echo Starting backend server...
-echo Backend: http://localhost:8000
-echo API Docs: http://localhost:8000/docs
+echo Backend: http://localhost:8500
+echo API Docs: http://localhost:8500/docs
 echo.
 echo Press Ctrl+C to stop the server
 echo.
 
-python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+python -m uvicorn main:app --reload --host 127.0.0.1 --port 8500

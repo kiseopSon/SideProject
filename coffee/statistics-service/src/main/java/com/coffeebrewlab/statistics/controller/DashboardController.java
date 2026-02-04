@@ -299,8 +299,8 @@ public class DashboardController {
                         <h1>☕ Coffee Brew Lab</h1>
                         <p>커피 추출 실험 대시보드</p>
                         <div style="margin-top: 20px; display: flex; gap: 15px; justify-content: center;">
-                            <a href="/search-page" style="color: #f39c12; text-decoration: none; padding: 10px 20px; background: rgba(243, 156, 18, 0.2); border-radius: 8px; border: 1px solid rgba(243, 156, 18, 0.3);">🔍 검색</a>
-                            <a href="/history-page" style="color: #f39c12; text-decoration: none; padding: 10px 20px; background: rgba(243, 156, 18, 0.2); border-radius: 8px; border: 1px solid rgba(243, 156, 18, 0.3);">📅 히스토리</a>
+                            <a href="search-page" style="color: #f39c12; text-decoration: none; padding: 10px 20px; background: rgba(243, 156, 18, 0.2); border-radius: 8px; border: 1px solid rgba(243, 156, 18, 0.3);">🔍 검색</a>
+                            <a href="history-page" style="color: #f39c12; text-decoration: none; padding: 10px 20px; background: rgba(243, 156, 18, 0.2); border-radius: 8px; border: 1px solid rgba(243, 156, 18, 0.3);">📅 히스토리</a>
                         </div>
                     </header>
                     
@@ -475,7 +475,7 @@ public class DashboardController {
                         <button class="refresh-btn" onclick="location.reload()">
                             🔄 새로고침
                         </button>
-                        <a href="/experiment-form" class="new-experiment-btn">
+                        <a href="experiment-form" class="new-experiment-btn">
                             ➕ 새 실험 작성
                         </a>
                     </div>
