@@ -26,6 +26,9 @@ ENV/
 *.log
 logs/
 
+# 개인 자료 (대시보드 접속 기록)
+data/
+
 # OS
 .DS_Store
 Thumbs.db

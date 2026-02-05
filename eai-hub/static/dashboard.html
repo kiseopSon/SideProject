@@ -313,8 +313,8 @@
     </style>
 </head>
 <body>
-    <div class="fullscreen-overlay" id="fullscreen-overlay" onclick="requestFullscreenAndClose()">
-        <div class="prompt">🖥️ 전체화면으로 전환하려면 클릭하세요<br><small>(ESC로 해제)</small></div>
+    <div class="fullscreen-overlay" id="fullscreen-overlay" tabindex="-1" onclick="requestFullscreenAndClose()">
+        <div class="prompt">🖥️ 전체화면으로 전환하려면 클릭하세요<br><small>(ESC로 건너뛰기)</small></div>
     </div>
     <div class="container">
         <div class="header">
@@ -529,7 +529,7 @@
                         ${service.base_url && isHealthy ? 
                             (() => { const u = (service.metadata?.direct_access && service.metadata?.port) ? (location.protocol + '//' + location.hostname + ':' + service.metadata.port + '/') : ('/api/' + service.id + '/'); return `<a href="#" class="btn btn-primary" data-service-url="${u.replace(/"/g, '&quot;')}" onclick="openServiceAccess(event, '${service.id}', this.dataset.serviceUrl)">서비스 접속</a>`; })() : ''}
                         ${service.api_prefix && isHealthy && !(service.metadata?.hide_api_button) ? 
-                            (() => { const apiUrl = service.metadata?.api_url || ('/api/' + service.id + '/'); const href = apiUrl.startsWith('http') ? apiUrl : (apiUrl.startsWith('/') ? apiUrl : '/api/' + service.id + '/'); return `<a href="${href}" class="btn btn-secondary" onclick="openApiAccess(event, '${apiUrl.replace(/'/g, "\\'")}')">API 접속</a>`; })() : ''}
+                            (() => { const apiUrl = service.api_url || service.metadata?.api_url || ('/api/' + service.id + '/'); const href = apiUrl.startsWith('http') ? apiUrl : (apiUrl.startsWith('/') ? apiUrl : '/api/' + service.id + '/'); return `<a href="${href}" class="btn btn-secondary" onclick="openApiAccess(event, '${apiUrl.replace(/'/g, "\\'")}')">API 접속</a>`; })() : ''}
                         ${service.api_prefix && userInfo.is_admin ? 
                             `<a href="/services/${service.id}/api-info" class="btn btn-secondary">API 정보</a>` : ''}
                         <a href="/services/${service.id}" class="btn btn-secondary">상세 정보</a>
@@ -591,6 +591,25 @@
             }
         }
 
+        function closeOverlayOnly() {
+            var overlay = document.getElementById('fullscreen-overlay');
+            if (overlay && getComputedStyle(overlay).display !== 'none') {
+                overlay.style.display = 'none';
+            }
+        }
+
+        (function setupEscToCloseOverlay() {
+            function onKey(e) {
+                if (e.key !== 'Escape') return;
+                var overlay = document.getElementById('fullscreen-overlay');
+                if (!overlay || getComputedStyle(overlay).display === 'none') return;
+                closeOverlayOnly();
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            window.addEventListener('keydown', onKey, true);
+        })();
+
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().then(() => updateFullscreenButton(true)).catch(() => {});
@@ -651,6 +670,8 @@
                 alert('API 정보는 최고 권한(관리자) 계정만 접근할 수 있습니다.');
                 window.history.replaceState({}, '', '/dashboard');
             }
+            var overlay = document.getElementById('fullscreen-overlay');
+            if (overlay) overlay.focus();
             loadServices();
         })();
 

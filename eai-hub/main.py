@@ -22,6 +22,7 @@ from app.models import ServiceInfo, ServiceStatus, HealthCheckResponse
 from app.service_registry import ServiceRegistry
 from app.proxy import ProxyRouter
 from app.health_checker import HealthChecker
+from app.access_logger import log_dashboard_access
 
 # 로깅 설정
 logging.basicConfig(
@@ -110,6 +111,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def dashboard_access_log_middleware(request: Request, call_next):
+    """대시보드 접속 시도 시 IP 기록 (개인 자료용)"""
+    if request.url.path.rstrip("/") == "/dashboard":
+        session_token = request.cookies.get("session_token")
+        username = get_session_username(session_token) if verify_session(session_token) else None
+        log_dashboard_access(request, username=username)
+    return await call_next(request)
 
 
 def get_session_token(request: Request) -> Optional[str]:
@@ -389,6 +400,13 @@ async def logout(request: Request):
     return response
 
 
+@app.post("/api/incidents")
+async def receive_incident_report(payload: dict):
+    """AI Incident Intelligence Platform에서 인시던트 결과 수신"""
+    logger.info(f"[eai-hub] 인시던트 수신: {payload.get('incident_id', '?')}")
+    return {"status": "ok", "received": True}
+
+
 @app.get("/api/me")
 async def get_current_user(request: Request):
     """현재 로그인 사용자 정보 (이름, 최고 권한 여부)"""
@@ -418,6 +436,9 @@ async def get_services():
             d["download_available"] = _is_download_available(service.id, d["metadata"]["download_file"])
         else:
             d["download_available"] = None
+        meta = d.get("metadata") or {}
+        if meta.get("api_url") is not None:
+            d["api_url"] = meta["api_url"]
         result.append(d)
     return {
         "total": len(result),
@@ -1171,11 +1192,11 @@ async def api_service_redirect(service_id: str, request: Request):
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     """대시보드 페이지"""
-    # 인증되지 않으면 로그인 페이지로 리다이렉트
     session_token = get_session_token(request)
     if not verify_session(session_token):
-        return RedirectResponse(url="/", status_code=303)
-    # HTML 직접 서빙 (303 리다이렉트 제거)
+        r = RedirectResponse(url="/", status_code=303)
+        r.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+        return r
     dashboard_path = Path(__file__).parent / "static" / "dashboard.html"
     return FileResponse(dashboard_path, media_type="text/html")
 

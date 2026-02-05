@@ -4,7 +4,7 @@ import re
 from typing import Optional
 from urllib.parse import urlparse
 from fastapi import Request, HTTPException
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import Response
 import httpx
 from app.service_registry import ServiceRegistry
 from app.config import settings
@@ -80,12 +80,15 @@ class ProxyRouter:
             except Exception:
                 return [u]
         
+        proxy_timeout = meta.get("proxy_timeout")
+        if proxy_timeout is None:
+            proxy_timeout = settings.PROXY_TIMEOUT
         urls_to_try = _alt_urls(target_url)
         last_err = None
         for try_url in urls_to_try:
             try:
                 async with httpx.AsyncClient(
-                    timeout=settings.PROXY_TIMEOUT,
+                    timeout=proxy_timeout,
                     follow_redirects=True
                 ) as client:
                     response = await client.request(
@@ -99,6 +102,8 @@ class ProxyRouter:
                     response_headers.pop("access-control-allow-credentials", None)
                     response_headers.pop("access-control-allow-methods", None)
                     response_headers.pop("access-control-allow-headers", None)
+                    response_headers.pop("content-length", None)
+                    response_headers.pop("transfer-encoding", None)
                     content = response.content or b""
                     content_modified = False
                     if not use_base_path and path_part == "" and content:
@@ -112,15 +117,12 @@ class ProxyRouter:
                                 content_modified = True
                             except Exception as e:
                                 logger.warning(f"HTML 경로 교체 실패 {service_id}: {e}")
-                    if content_modified:
-                        response_headers.pop("content-length", None)
-                        response_headers["content-length"] = str(len(content))
                     if response.status_code >= 500:
                         logger.warning(f"프록시 upstream {response.status_code}: {service_id} <- {try_url}")
                     if response.status_code == 404:
                         logger.warning(f"프록시 upstream 404: {service_id} <- {try_url} (path_part={path_part!r}, backend_path={backend_path!r})")
-                    return StreamingResponse(
-                        iter([content]),
+                    return Response(
+                        content=content,
                         status_code=response.status_code,
                         headers=response_headers,
                         media_type=response.headers.get("content-type")

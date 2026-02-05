@@ -8,6 +8,10 @@
       "api_prefix": "/api/ai-incident",
       "enabled": true,
       "metadata": {
+        "port": 9201,
+        "host": "localhost",
+        "health_path": "/",
+        "hide_api_button": true,
         "tech": ["Python", "FastAPI", "Kafka", "Redis", "Elasticsearch", "Ollama", "OpenTelemetry"],
         "category": "monitoring"
       }
