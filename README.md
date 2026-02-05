@@ -4,6 +4,7 @@
 
 EAI Hub는 여러 서비스를 하나의 중앙 허브에서 통합 관리하는 API Gateway입니다. 
 모든 서비스에 대한 단일 진입점을 제공하고, 서비스 디스커버리, 헬스체크, 프록시 라우팅 기능을 제공합니다.
+<img width="2816" height="1536" alt="eai-hub_image" src="https://github.com/user-attachments/assets/2e12883a-ff91-4b88-92ae-b387ba0af119" />
 
 ## 주요 기능
 
